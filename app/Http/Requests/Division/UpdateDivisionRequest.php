@@ -23,8 +23,9 @@ class UpdateDivisionRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')->ignore($division)],
-            'code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')->ignore($division)],
+            'slug' => ['required', 'string', 'max:255', 'alpha_dash:ascii', Rule::unique('divisions', 'slug')->ignore($division)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'manager_id' => ['nullable', 'uuid', 'exists:users,id'],
         ];
     }
 }

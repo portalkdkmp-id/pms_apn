@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Division\StoreDivisionRequest;
 use App\Http\Requests\Division\UpdateDivisionRequest;
 use App\Models\Division;
+use App\Models\User;
 use App\Services\DivisionService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -20,6 +21,9 @@ class DivisionController extends Controller
 
         return Inertia::render('divisions/index', [
             'divisions' => $this->divisionService->paginate(),
+            'users' => User::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']),
         ]);
     }
 

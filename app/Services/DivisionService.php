@@ -13,6 +13,7 @@ class DivisionService
     public function paginate(): LengthAwarePaginator
     {
         return Division::query()
+            ->with('manager:id,name,email')
             ->latest()
             ->paginate(10)
             ->withQueryString();

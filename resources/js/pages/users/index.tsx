@@ -19,15 +19,17 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { ManagedUser, Paginated } from '@/types';
+import type { ManagedUser, Option, Paginated } from '@/types';
 
 type Props = {
     users: Paginated<ManagedUser>;
     roles: string[];
+    divisions: Option[];
 };
 
 type UserFormDialogProps = {
     roles: string[];
+    divisions: Option[];
     user?: ManagedUser;
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -35,6 +37,7 @@ type UserFormDialogProps = {
 
 function UserFormDialog({
     roles,
+    divisions,
     user,
     open,
     onOpenChange,
@@ -49,7 +52,7 @@ function UserFormDialog({
                         {user ? 'Edit user' : 'Tambah user'}
                     </DialogTitle>
                     <DialogDescription>
-                        Kelola identitas user dan role aksesnya.
+                        Kelola identitas user, divisi, dan role aksesnya.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -102,6 +105,26 @@ function UserFormDialog({
                                         defaultValue={user?.phone ?? ''}
                                     />
                                     <InputError message={errors.phone} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="division_id">Divisi</Label>
+                                    <select
+                                        id="division_id"
+                                        name="division_id"
+                                        defaultValue={user?.division_id ?? ''}
+                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                                    >
+                                        <option value="">Tanpa divisi</option>
+                                        {divisions.map((division) => (
+                                            <option
+                                                key={division.id}
+                                                value={division.id}
+                                            >
+                                                {division.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.division_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">Password</Label>
@@ -170,7 +193,7 @@ function UserFormDialog({
     );
 }
 
-export default function UsersIndex({ users, roles }: Props) {
+export default function UsersIndex({ users, roles, divisions }: Props) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
 
@@ -189,7 +212,7 @@ export default function UsersIndex({ users, roles }: Props) {
                     <div>
                         <h1 className="text-xl font-semibold">Users</h1>
                         <p className="text-sm text-muted-foreground">
-                            Kelola akun dan role pengguna aplikasi.
+                            Kelola akun, divisi, dan role pengguna aplikasi.
                         </p>
                     </div>
                     <Button onClick={() => setIsCreateOpen(true)}>
@@ -210,7 +233,7 @@ export default function UsersIndex({ users, roles }: Props) {
                                         Staff
                                     </th>
                                     <th className="px-4 py-3 font-medium">
-                                        Telepon
+                                        Divisi
                                     </th>
                                     <th className="px-4 py-3 font-medium">
                                         Role
@@ -232,10 +255,13 @@ export default function UsersIndex({ users, roles }: Props) {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {user.staff_number}
+                                            <div>{user.staff_number}</div>
+                                            <div className="text-muted-foreground">
+                                                {user.phone ?? '-'}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {user.phone ?? '-'}
+                                            {user.division?.name ?? '-'}
                                         </td>
                                         <td className="px-4 py-3">
                                             {user.roles
@@ -292,12 +318,14 @@ export default function UsersIndex({ users, roles }: Props) {
 
             <UserFormDialog
                 roles={roles}
+                divisions={divisions}
                 open={isCreateOpen}
                 onOpenChange={setIsCreateOpen}
             />
             {editingUser && (
                 <UserFormDialog
                     roles={roles}
+                    divisions={divisions}
                     user={editingUser}
                     open={!!editingUser}
                     onOpenChange={(open) => !open && setEditingUser(null)}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\Division;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,9 @@ class UserController extends Controller
                 ->where('guard_name', 'web')
                 ->orderBy('name')
                 ->pluck('name'),
+            'divisions' => Division::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 

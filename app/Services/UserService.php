@@ -15,7 +15,7 @@ class UserService
     public function paginate(): LengthAwarePaginator
     {
         return User::query()
-            ->with('roles:id,name')
+            ->with(['division:id,name,slug', 'roles:id,name'])
             ->latest()
             ->paginate(10)
             ->withQueryString();

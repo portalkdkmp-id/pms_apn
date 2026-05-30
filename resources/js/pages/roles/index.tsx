@@ -8,6 +8,7 @@ import {
     update,
 } from '@/actions/App/Http/Controllers/RoleController';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -170,12 +171,28 @@ export default function RolesIndex({ roles, permissions }: Props) {
                                             {role.name}
                                         </td>
                                         <td className="px-4 py-3 text-muted-foreground">
-                                            {role.permissions
-                                                .map(
-                                                    (permission) =>
-                                                        permission.name,
-                                                )
-                                                .join(', ') || '-'}
+                                            <div className="flex flex-wrap gap-2">
+                                                {role.permissions.length > 0 ? (
+                                                    role.permissions.map(
+                                                        (permission) => (
+                                                            <Badge
+                                                                key={
+                                                                    permission.id
+                                                                }
+                                                                variant={
+                                                                    'outline'
+                                                                }
+                                                            >
+                                                                {
+                                                                    permission.name
+                                                                }
+                                                            </Badge>
+                                                        ),
+                                                    )
+                                                ) : (
+                                                    <span>-</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-2">

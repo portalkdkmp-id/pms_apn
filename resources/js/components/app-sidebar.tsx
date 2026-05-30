@@ -1,9 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
     FolderGit2,
     LayoutGrid,
+    ListTodo,
+    PanelsTopLeft,
     ShieldCheck,
     Users,
 } from 'lucide-react';
@@ -22,30 +24,53 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as divisionsIndex } from '@/routes/divisions';
+import { index as projectStatusesIndex } from '@/routes/project-statuses';
+import { index as projectsIndex } from '@/routes/projects';
 import { index as rolesIndex } from '@/routes/roles';
 import { index as usersIndex } from '@/routes/users';
-import type { NavItem } from '@/types';
+import type { Auth, NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
+type PermissionNavItem = NavItem & {
+    permission?: string;
+    role?: string;
+};
+
+const mainNavItems: PermissionNavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        permission: 'dashboard.view',
     },
     {
         title: 'Users',
         href: usersIndex(),
         icon: Users,
+        permission: 'user.view',
     },
     {
         title: 'Divisions',
         href: divisionsIndex(),
         icon: Building2,
+        permission: 'division.view',
+    },
+    {
+        title: 'Project Statuses',
+        href: projectStatusesIndex(),
+        icon: ListTodo,
+        permission: 'project_status.view',
+    },
+    {
+        title: 'Projects',
+        href: projectsIndex(),
+        icon: PanelsTopLeft,
+        permission: 'project.view',
     },
     {
         title: 'Roles',
         href: rolesIndex(),
         icon: ShieldCheck,
+        role: 'superadmin',
     },
 ];
 
@@ -63,6 +88,17 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissions = new Set(auth.permissions);
+    const roles = new Set(auth.roles);
+    const visibleMainNavItems = mainNavItems.filter((item) => {
+        if (item.role) {
+            return roles.has(item.role);
+        }
+
+        return item.permission ? permissions.has(item.permission) : true;
+    });
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -78,7 +114,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={visibleMainNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

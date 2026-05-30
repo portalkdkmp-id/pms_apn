@@ -50,12 +50,45 @@ class RolePermissionSeeder extends Seeder
             ->whereIn('name', $permissions)
             ->get();
 
-        foreach (['superadmin', 'direktur', 'vice_presiden', 'manager', 'staff'] as $roleName) {
-            $role = Role::findOrCreate($roleName, 'web');
+        $rolePermissions = [
+            'superadmin' => $permissions,
+            'direktur' => [
+                'dashboard.view',
+                'user.view',
+                'division.view',
+                'project_status.view',
+                'project.view',
+                'project.view_all',
+            ],
+            'vice_presiden' => [
+                'dashboard.view',
+                'user.view',
+                'division.view',
+                'project_status.view',
+                'project.view',
+                'project.view_all',
+            ],
+            'manager' => [
+                'dashboard.view',
+                'division.view',
+                'project_status.view',
+                'project.view',
+                'project.create',
+                'project.update',
+                'project.delete',
+                'project.view_division',
+            ],
+            'staff' => [
+                'dashboard.view',
+                'project.view',
+                'project.update',
+                'project.view_assigned',
+            ],
+        ];
 
-            if ($roleName === 'superadmin') {
-                $role->syncPermissions($webPermissions);
-            }
+        foreach (array_keys($rolePermissions) as $roleName) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $role->syncPermissions($webPermissions->whereIn('name', $rolePermissions[$roleName]));
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

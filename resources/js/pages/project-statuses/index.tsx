@@ -6,7 +6,7 @@ import {
     index,
     store,
     update,
-} from '@/actions/App/Http/Controllers/DivisionController';
+} from '@/actions/App/Http/Controllers/ProjectStatusController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,40 +19,41 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Division, OptionUser, Paginated } from '@/types';
+import type { Paginated, ProjectStatus } from '@/types';
 
 type Props = {
-    divisions: Paginated<Division>;
-    users: OptionUser[];
+    projectStatuses: Paginated<ProjectStatus>;
 };
 
-type DivisionFormDialogProps = {
-    users: OptionUser[];
-    division?: Division;
+type StatusFormDialogProps = {
+    projectStatus?: ProjectStatus;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 };
 
-function DivisionFormDialog({
-    users,
-    division,
+function StatusFormDialog({
+    projectStatus,
     open,
     onOpenChange,
-}: DivisionFormDialogProps) {
+}: StatusFormDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {division ? 'Edit division' : 'Tambah division'}
+                        {projectStatus
+                            ? 'Edit project status'
+                            : 'Tambah project status'}
                     </DialogTitle>
                     <DialogDescription>
-                        Kelola master division, slug, dan manager.
+                        Kelola tahapan status project PMS.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form
-                    {...(division ? update.form(division.id) : store.form())}
+                    {...(projectStatus
+                        ? update.form(String(projectStatus.id))
+                        : store.form())}
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -63,7 +64,7 @@ function DivisionFormDialog({
                                 <Input
                                     id="name"
                                     name="name"
-                                    defaultValue={division?.name}
+                                    defaultValue={projectStatus?.name}
                                     required
                                 />
                                 <InputError message={errors.name} />
@@ -73,37 +74,55 @@ function DivisionFormDialog({
                                 <Input
                                     id="slug"
                                     name="slug"
-                                    defaultValue={division?.slug}
+                                    defaultValue={projectStatus?.slug}
                                     required
                                 />
                                 <InputError message={errors.slug} />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="manager_id">Manager</Label>
-                                <select
-                                    id="manager_id"
-                                    name="manager_id"
-                                    defaultValue={division?.manager_id ?? ''}
-                                    className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                >
-                                    <option value="">Belum ada manager</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <InputError message={errors.manager_id} />
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="color">Color</Label>
+                                    <Input
+                                        id="color"
+                                        name="color"
+                                        type="color"
+                                        defaultValue={
+                                            projectStatus?.color ?? '#2563eb'
+                                        }
+                                        required
+                                        className="p-1"
+                                    />
+                                    <InputError message={errors.color} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="sort_order">
+                                        Sort order
+                                    </Label>
+                                    <Input
+                                        id="sort_order"
+                                        name="sort_order"
+                                        type="number"
+                                        min="0"
+                                        defaultValue={
+                                            projectStatus?.sort_order ?? 0
+                                        }
+                                        required
+                                    />
+                                    <InputError message={errors.sort_order} />
+                                </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">Deskripsi</Label>
-                                <Input
-                                    id="description"
-                                    name="description"
-                                    defaultValue={division?.description ?? ''}
+                            <label className="flex items-center gap-2 text-sm">
+                                <input
+                                    type="checkbox"
+                                    name="is_active"
+                                    value="1"
+                                    defaultChecked={
+                                        projectStatus?.is_active ?? true
+                                    }
+                                    className="size-4 rounded border-border"
                                 />
-                                <InputError message={errors.description} />
-                            </div>
+                                <span>Aktif</span>
+                            </label>
                             <DialogFooter>
                                 <Button
                                     type="button"
@@ -113,7 +132,7 @@ function DivisionFormDialog({
                                     Batal
                                 </Button>
                                 <Button disabled={processing}>
-                                    {division ? 'Simpan' : 'Tambah'}
+                                    {projectStatus ? 'Simpan' : 'Tambah'}
                                 </Button>
                             </DialogFooter>
                         </>
@@ -124,28 +143,32 @@ function DivisionFormDialog({
     );
 }
 
-export default function DivisionsIndex({ divisions, users }: Props) {
+export default function ProjectStatusesIndex({ projectStatuses }: Props) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [editingDivision, setEditingDivision] = useState<Division | null>(
+    const [editingStatus, setEditingStatus] = useState<ProjectStatus | null>(
         null,
     );
 
-    const deleteDivision = (division: Division) => {
-        if (window.confirm(`Hapus division ${division.name}?`)) {
-            router.delete(destroy.url(division.id), { preserveScroll: true });
+    const deleteStatus = (projectStatus: ProjectStatus) => {
+        if (window.confirm(`Hapus status ${projectStatus.name}?`)) {
+            router.delete(destroy.url(String(projectStatus.id)), {
+                preserveScroll: true,
+            });
         }
     };
 
     return (
         <>
-            <Head title="Divisions" />
+            <Head title="Project Statuses" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-semibold">Divisions</h1>
+                        <h1 className="text-xl font-semibold">
+                            Project Statuses
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Kelola divisi, manager, dan relasi user.
+                            Kelola alur status project.
                         </p>
                     </div>
                     <Button onClick={() => setIsCreateOpen(true)}>
@@ -166,10 +189,10 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                         Slug
                                     </th>
                                     <th className="px-4 py-3 font-medium">
-                                        Manager
+                                        Urutan
                                     </th>
                                     <th className="px-4 py-3 font-medium">
-                                        Deskripsi
+                                        Status
                                     </th>
                                     <th className="w-24 px-4 py-3 text-right font-medium">
                                         Aksi
@@ -177,19 +200,33 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {divisions.data.map((division) => (
-                                    <tr key={division.id} className="border-t">
-                                        <td className="px-4 py-3 font-medium">
-                                            {division.name}
+                                {projectStatuses.data.map((projectStatus) => (
+                                    <tr
+                                        key={projectStatus.id}
+                                        className="border-t"
+                                    >
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <span
+                                                    className="size-3 rounded-full"
+                                                    style={{
+                                                        backgroundColor:
+                                                            projectStatus.color,
+                                                    }}
+                                                />
+                                                {projectStatus.name}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {division.slug}
+                                            {projectStatus.slug}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {division.manager?.name ?? '-'}
+                                            {projectStatus.sort_order}
                                         </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {division.description ?? '-'}
+                                        <td className="px-4 py-3">
+                                            {projectStatus.is_active
+                                                ? 'Aktif'
+                                                : 'Nonaktif'}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-2">
@@ -197,8 +234,8 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                                     size="icon-sm"
                                                     variant="outline"
                                                     onClick={() =>
-                                                        setEditingDivision(
-                                                            division,
+                                                        setEditingStatus(
+                                                            projectStatus,
                                                         )
                                                     }
                                                 >
@@ -208,7 +245,9 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                                     size="icon-sm"
                                                     variant="destructive"
                                                     onClick={() =>
-                                                        deleteDivision(division)
+                                                        deleteStatus(
+                                                            projectStatus,
+                                                        )
                                                     }
                                                 >
                                                     <Trash2 />
@@ -223,7 +262,7 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {divisions.links.map((link) => (
+                    {projectStatuses.links.map((link) => (
                         <Button
                             key={link.label}
                             asChild
@@ -241,23 +280,21 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                 </div>
             </div>
 
-            <DivisionFormDialog
-                users={users}
+            <StatusFormDialog
                 open={isCreateOpen}
                 onOpenChange={setIsCreateOpen}
             />
-            {editingDivision && (
-                <DivisionFormDialog
-                    users={users}
-                    division={editingDivision}
-                    open={!!editingDivision}
-                    onOpenChange={(open) => !open && setEditingDivision(null)}
+            {editingStatus && (
+                <StatusFormDialog
+                    projectStatus={editingStatus}
+                    open={!!editingStatus}
+                    onOpenChange={(open) => !open && setEditingStatus(null)}
                 />
             )}
         </>
     );
 }
 
-DivisionsIndex.layout = {
-    breadcrumbs: [{ title: 'Divisions', href: index() }],
+ProjectStatusesIndex.layout = {
+    breadcrumbs: [{ title: 'Project Statuses', href: index() }],
 };

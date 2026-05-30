@@ -23,6 +23,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'staff_number' => ['required', 'string', 'max:255', 'unique:users,staff_number'],
             'phone' => ['nullable', 'string', 'max:255', 'unique:users,phone'],
+            'division_id' => ['nullable', 'uuid', 'exists:divisions,id'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')->where('guard_name', 'web')],

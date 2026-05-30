@@ -18,8 +18,9 @@ class StoreDivisionRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:divisions,name'],
-            'code' => ['required', 'string', 'max:50', 'unique:divisions,code'],
+            'slug' => ['required', 'string', 'max:255', 'alpha_dash:ascii', 'unique:divisions,slug'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'manager_id' => ['nullable', 'uuid', 'exists:users,id'],
         ];
     }
 }

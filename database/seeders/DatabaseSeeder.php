@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,62 +16,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RolePermissionSeeder::class);
-
-        // User::factory(10)->create();
-
-        $superadmin = User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@mail.com',
-            'staff_number' => 'k0001',
-            'password' => bcrypt('password'),
-            'phone' => '70001',
-
+        $this->call([
+            RolePermissionSeeder::class,
+            ProjectStatusSeeder::class,
         ]);
 
-        $direktur = User::factory()->create([
-            'name' => 'Direktur',
-            'email' => 'direktur@mail.com',
-            'staff_number' => 'k0002',
-            'password' => bcrypt('password'),
-            'phone' => '70002',
+        $users = [
+            ['name' => 'Super Admin', 'email' => 'superadmin@mail.com', 'staff_number' => 'k0001', 'phone' => '70001', 'role' => 'superadmin'],
+            ['name' => 'Direktur', 'email' => 'direktur@mail.com', 'staff_number' => 'k0002', 'phone' => '70002', 'role' => 'direktur'],
+            ['name' => 'Wakil Direktur', 'email' => 'vicedirektur@mail.com', 'staff_number' => 'k0003', 'phone' => '70003', 'role' => 'vice_presiden'],
+            ['name' => 'Manager', 'email' => 'manager@mail.com', 'staff_number' => 'k0004', 'phone' => '70004', 'role' => 'manager'],
+            ['name' => 'Staff', 'email' => 'staff@mail.com', 'staff_number' => 'k0005', 'phone' => '70005', 'role' => 'staff'],
+        ];
 
-        ]);
+        foreach ($users as $userData) {
+            $user = User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'staff_number' => $userData['staff_number'],
+                    'password' => Hash::make('password'),
+                    'phone' => $userData['phone'],
+                ],
+            );
 
-        
-        $vicedirektur = User::factory()->create([
-            'name' => 'Wakil Direktur',
-            'email' => 'vicedirektur@mail.com',
-            'staff_number' => 'k0003',
-            'password' => bcrypt('password'),
-            'phone' => '70003',
+            $user->syncRoles([$userData['role']]);
+        }
 
-        ]);
-
-        $manager = User::factory()->create([
-            'name' => 'Manager',
-            'email' => 'manager@mail.com',
-            'staff_number' => 'k0004',
-            'password' => bcrypt('password'),
-            'phone' => '70004',
-
-        ]);
-
-        $staff = User::factory()->create([
-            'name' => 'Staff',
-            'email' => 'staff@mail.com',
-            'staff_number' => 'k0005',
-            'password' => bcrypt('password'),
-            'phone' => '70005',
-
-        ]);
-
-
-
-        $superadmin->assignRole('superadmin');
-        $direktur->assignRole('direktur');
-        $vicedirektur->assignRole('vice_presiden');
-        $manager->assignRole('manager');
-        $staff->assignRole('staff');
+        $this->call(DivisionSeeder::class);
     }
 }
