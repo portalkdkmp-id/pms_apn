@@ -22,6 +22,14 @@ class RolePermissionSeeder extends Seeder
             'user.create',
             'user.update',
             'user.delete',
+            'role.view',
+            'role.create',
+            'role.update',
+            'role.delete',
+            'permission.view',
+            'permission.create',
+            'permission.update',
+            'permission.delete',
             'division.view',
             'division.create',
             'division.update',
@@ -37,6 +45,10 @@ class RolePermissionSeeder extends Seeder
             'project.view_all',
             'project.view_division',
             'project.view_assigned',
+            'team.view',
+            'team.create',
+            'team.update',
+            'team.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -59,6 +71,7 @@ class RolePermissionSeeder extends Seeder
                 'project_status.view',
                 'project.view',
                 'project.view_all',
+                'team.view',
             ],
             'vice_presiden' => [
                 'dashboard.view',
@@ -67,6 +80,7 @@ class RolePermissionSeeder extends Seeder
                 'project_status.view',
                 'project.view',
                 'project.view_all',
+                'team.view',
             ],
             'manager' => [
                 'dashboard.view',
@@ -77,12 +91,17 @@ class RolePermissionSeeder extends Seeder
                 'project.update',
                 'project.delete',
                 'project.view_division',
+                'team.view',
+                'team.create',
+                'team.update',
+                'team.delete',
             ],
             'staff' => [
                 'dashboard.view',
                 'project.view',
                 'project.update',
                 'project.view_assigned',
+                'team.view',
             ],
         ];
 

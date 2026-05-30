@@ -2,26 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\ImportUsersRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Division;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
     public function __construct(private readonly UserService $userService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         abort_unless(request()->user()?->can('user.view'), 403);
 
         return Inertia::render('users/index', [
-            'users' => $this->userService->paginate(),
+            'users' => $this->userService->paginate($request->only(['search', 'role', 'division_id'])),
             'roles' => Role::query()
                 ->where('guard_name', 'web')
                 ->orderBy('name')
@@ -29,6 +32,7 @@ class UserController extends Controller
             'divisions' => Division::query()
                 ->orderBy('name')
                 ->get(['id', 'name']),
+            'filters' => $request->only(['search', 'role', 'division_id']),
         ]);
     }
 
@@ -54,5 +58,19 @@ class UserController extends Controller
         $this->userService->delete($user);
 
         return to_route('users.index')->with('success', 'User berhasil dihapus.');
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        abort_unless($request->user()?->can('user.view'), 403);
+
+        return $this->userService->export($request->only(['search', 'role', 'division_id']));
+    }
+
+    public function import(ImportUsersRequest $request): RedirectResponse
+    {
+        $count = $this->userService->import($request->file('file'));
+
+        return to_route('users.index')->with('success', "{$count} user berhasil diimport.");
     }
 }

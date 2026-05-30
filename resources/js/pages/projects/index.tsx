@@ -1,4 +1,4 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -25,6 +25,7 @@ import type {
     Paginated,
     Project,
     ProjectStatus,
+    Auth,
 } from '@/types';
 
 type Props = {
@@ -292,6 +293,11 @@ export default function ProjectsIndex({
     statuses,
     priorities,
 }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissions = new Set(auth.permissions);
+    const canCreate = permissions.has('project.create');
+    const canUpdate = permissions.has('project.update');
+    const canDelete = permissions.has('project.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
 
@@ -313,10 +319,12 @@ export default function ProjectsIndex({
                             Kelola project lintas divisi dan progres KPI.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus />
-                        Tambah
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreateOpen(true)}>
+                            <Plus />
+                            Tambah
+                        </Button>
+                    )}
                 </div>
 
                 <div className="overflow-hidden rounded-lg border">
@@ -339,9 +347,11 @@ export default function ProjectsIndex({
                                     <th className="px-4 py-3 font-medium">
                                         Deadline
                                     </th>
-                                    <th className="w-24 px-4 py-3 text-right font-medium">
-                                        Aksi
-                                    </th>
+                                    {(canUpdate || canDelete) && (
+                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                            Aksi
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -381,30 +391,38 @@ export default function ProjectsIndex({
                                                 project.expected_deadline,
                                             ) || '-'}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setEditingProject(
-                                                            project,
-                                                        )
-                                                    }
-                                                >
-                                                    <Edit />
-                                                </Button>
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="destructive"
-                                                    onClick={() =>
-                                                        deleteProject(project)
-                                                    }
-                                                >
-                                                    <Trash2 />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        {(canUpdate || canDelete) && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {canUpdate && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setEditingProject(
+                                                                    project,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                deleteProject(
+                                                                    project,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -431,15 +449,17 @@ export default function ProjectsIndex({
                 </div>
             </div>
 
-            <ProjectFormDialog
-                divisions={divisions}
-                owners={owners}
-                statuses={statuses}
-                priorities={priorities}
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-            />
-            {editingProject && (
+            {canCreate && (
+                <ProjectFormDialog
+                    divisions={divisions}
+                    owners={owners}
+                    statuses={statuses}
+                    priorities={priorities}
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                />
+            )}
+            {canUpdate && editingProject && (
                 <ProjectFormDialog
                     divisions={divisions}
                     owners={owners}

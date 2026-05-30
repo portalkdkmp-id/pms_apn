@@ -1,4 +1,4 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Paginated, ProjectStatus } from '@/types';
+import type { Auth, Paginated, ProjectStatus } from '@/types';
 
 type Props = {
     projectStatuses: Paginated<ProjectStatus>;
@@ -41,12 +41,10 @@ function StatusFormDialog({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {projectStatus
-                            ? 'Edit project status'
-                            : 'Tambah project status'}
+                        {projectStatus ? 'Edit status' : 'Tambah status'}
                     </DialogTitle>
                     <DialogDescription>
-                        Kelola tahapan status project PMS.
+                        Kelola tahapan status untuk project dan task.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -144,6 +142,11 @@ function StatusFormDialog({
 }
 
 export default function ProjectStatusesIndex({ projectStatuses }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissions = new Set(auth.permissions);
+    const canCreate = permissions.has('project_status.create');
+    const canUpdate = permissions.has('project_status.update');
+    const canDelete = permissions.has('project_status.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingStatus, setEditingStatus] = useState<ProjectStatus | null>(
         null,
@@ -159,22 +162,22 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
 
     return (
         <>
-            <Head title="Project Statuses" />
+            <Head title="Status" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-semibold">
-                            Project Statuses
-                        </h1>
+                        <h1 className="text-xl font-semibold">Status</h1>
                         <p className="text-sm text-muted-foreground">
-                            Kelola alur status project.
+                            Kelola alur status project dan task.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus />
-                        Tambah
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreateOpen(true)}>
+                            <Plus />
+                            Tambah
+                        </Button>
+                    )}
                 </div>
 
                 <div className="overflow-hidden rounded-lg border">
@@ -194,9 +197,11 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                                     <th className="px-4 py-3 font-medium">
                                         Status
                                     </th>
-                                    <th className="w-24 px-4 py-3 text-right font-medium">
-                                        Aksi
-                                    </th>
+                                    {(canUpdate || canDelete) && (
+                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                            Aksi
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -228,32 +233,38 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                                                 ? 'Aktif'
                                                 : 'Nonaktif'}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setEditingStatus(
-                                                            projectStatus,
-                                                        )
-                                                    }
-                                                >
-                                                    <Edit />
-                                                </Button>
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="destructive"
-                                                    onClick={() =>
-                                                        deleteStatus(
-                                                            projectStatus,
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        {(canUpdate || canDelete) && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {canUpdate && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setEditingStatus(
+                                                                    projectStatus,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                deleteStatus(
+                                                                    projectStatus,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -280,11 +291,13 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                 </div>
             </div>
 
-            <StatusFormDialog
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-            />
-            {editingStatus && (
+            {canCreate && (
+                <StatusFormDialog
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                />
+            )}
+            {canUpdate && editingStatus && (
                 <StatusFormDialog
                     projectStatus={editingStatus}
                     open={!!editingStatus}
@@ -296,5 +309,5 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
 }
 
 ProjectStatusesIndex.layout = {
-    breadcrumbs: [{ title: 'Project Statuses', href: index() }],
+    breadcrumbs: [{ title: 'Status', href: index() }],
 };

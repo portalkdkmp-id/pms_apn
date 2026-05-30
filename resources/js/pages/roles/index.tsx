@@ -1,4 +1,4 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { ManagedRole, Paginated } from '@/types';
+import type { Auth, ManagedRole, Paginated } from '@/types';
 
 type Props = {
     roles: Paginated<ManagedRole>;
@@ -117,6 +117,11 @@ function RoleFormDialog({
 }
 
 export default function RolesIndex({ roles, permissions }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissionSet = new Set(auth.permissions);
+    const canCreate = permissionSet.has('role.create');
+    const canUpdate = permissionSet.has('role.update');
+    const canDelete = permissionSet.has('role.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<ManagedRole | null>(null);
 
@@ -142,10 +147,12 @@ export default function RolesIndex({ roles, permissions }: Props) {
                             Kelola role dan akses permission aplikasi.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus />
-                        Tambah
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreateOpen(true)}>
+                            <Plus />
+                            Tambah
+                        </Button>
+                    )}
                 </div>
 
                 <div className="overflow-hidden rounded-lg border">
@@ -159,9 +166,11 @@ export default function RolesIndex({ roles, permissions }: Props) {
                                     <th className="px-4 py-3 font-medium">
                                         Permissions
                                     </th>
-                                    <th className="w-24 px-4 py-3 text-right font-medium">
-                                        Aksi
-                                    </th>
+                                    {(canUpdate || canDelete) && (
+                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                            Aksi
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -194,28 +203,36 @@ export default function RolesIndex({ roles, permissions }: Props) {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setEditingRole(role)
-                                                    }
-                                                >
-                                                    <Edit />
-                                                </Button>
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="destructive"
-                                                    onClick={() =>
-                                                        deleteRole(role)
-                                                    }
-                                                >
-                                                    <Trash2 />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        {(canUpdate || canDelete) && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {canUpdate && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setEditingRole(
+                                                                    role,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                deleteRole(role)
+                                                            }
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -242,12 +259,14 @@ export default function RolesIndex({ roles, permissions }: Props) {
                 </div>
             </div>
 
-            <RoleFormDialog
-                permissions={permissions}
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-            />
-            {editingRole && (
+            {canCreate && (
+                <RoleFormDialog
+                    permissions={permissions}
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                />
+            )}
+            {canUpdate && editingRole && (
                 <RoleFormDialog
                     permissions={permissions}
                     role={editingRole}

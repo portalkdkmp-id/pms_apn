@@ -7,6 +7,7 @@ import {
     ListTodo,
     PanelsTopLeft,
     ShieldCheck,
+    UsersRound,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -27,6 +28,7 @@ import { index as divisionsIndex } from '@/routes/divisions';
 import { index as projectStatusesIndex } from '@/routes/project-statuses';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as rolesIndex } from '@/routes/roles';
+import { index as teamsIndex } from '@/routes/teams';
 import { index as usersIndex } from '@/routes/users';
 import type { Auth, NavItem } from '@/types';
 
@@ -55,7 +57,7 @@ const mainNavItems: PermissionNavItem[] = [
         permission: 'division.view',
     },
     {
-        title: 'Project Statuses',
+        title: 'Status',
         href: projectStatusesIndex(),
         icon: ListTodo,
         permission: 'project_status.view',
@@ -67,10 +69,16 @@ const mainNavItems: PermissionNavItem[] = [
         permission: 'project.view',
     },
     {
+        title: 'Teams',
+        href: teamsIndex(),
+        icon: UsersRound,
+        permission: 'team.view',
+    },
+    {
         title: 'Roles',
         href: rolesIndex(),
         icon: ShieldCheck,
-        role: 'superadmin',
+        permission: 'role.view',
     },
 ];
 

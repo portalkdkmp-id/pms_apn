@@ -16,7 +16,7 @@ class RoleController extends Controller
 
     public function index(): Response
     {
-        abort_unless(request()->user()?->hasRole('superadmin'), 403);
+        abort_unless(request()->user()?->can('role.view'), 403);
 
         return Inertia::render('roles/index', [
             'roles' => $this->roleService->paginate(),
@@ -40,7 +40,7 @@ class RoleController extends Controller
 
     public function destroy(Role $role): RedirectResponse
     {
-        abort_unless(request()->user()?->hasRole('superadmin'), 403);
+        abort_unless(request()->user()?->can('role.delete'), 403);
         abort_if($role->name === 'superadmin', 422, 'Role superadmin tidak boleh dihapus.');
 
         $this->roleService->delete($role);

@@ -1,4 +1,4 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Division, OptionUser, Paginated } from '@/types';
+import type { Auth, Division, OptionUser, Paginated } from '@/types';
 
 type Props = {
     divisions: Paginated<Division>;
@@ -125,6 +125,11 @@ function DivisionFormDialog({
 }
 
 export default function DivisionsIndex({ divisions, users }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissions = new Set(auth.permissions);
+    const canCreate = permissions.has('division.create');
+    const canUpdate = permissions.has('division.update');
+    const canDelete = permissions.has('division.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingDivision, setEditingDivision] = useState<Division | null>(
         null,
@@ -148,10 +153,12 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                             Kelola divisi, manager, dan relasi user.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus />
-                        Tambah
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setIsCreateOpen(true)}>
+                            <Plus />
+                            Tambah
+                        </Button>
+                    )}
                 </div>
 
                 <div className="overflow-hidden rounded-lg border">
@@ -171,9 +178,11 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                     <th className="px-4 py-3 font-medium">
                                         Deskripsi
                                     </th>
-                                    <th className="w-24 px-4 py-3 text-right font-medium">
-                                        Aksi
-                                    </th>
+                                    {(canUpdate || canDelete) && (
+                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                            Aksi
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,30 +200,38 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {division.description ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setEditingDivision(
-                                                            division,
-                                                        )
-                                                    }
-                                                >
-                                                    <Edit />
-                                                </Button>
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="destructive"
-                                                    onClick={() =>
-                                                        deleteDivision(division)
-                                                    }
-                                                >
-                                                    <Trash2 />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        {(canUpdate || canDelete) && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {canUpdate && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setEditingDivision(
+                                                                    division,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                deleteDivision(
+                                                                    division,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -241,12 +258,14 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                 </div>
             </div>
 
-            <DivisionFormDialog
-                users={users}
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-            />
-            {editingDivision && (
+            {canCreate && (
+                <DivisionFormDialog
+                    users={users}
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                />
+            )}
+            {canUpdate && editingDivision && (
                 <DivisionFormDialog
                     users={users}
                     division={editingDivision}

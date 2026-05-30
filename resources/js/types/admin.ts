@@ -73,6 +73,18 @@ export type Project = {
     status?: Pick<ProjectStatus, 'id' | 'name' | 'color'> | null;
 };
 
+export type Team = {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    project_id: string;
+    leader_id: string | null;
+    project?: Pick<Project, 'id' | 'code' | 'title'> | null;
+    leader?: OptionUser | null;
+    members: OptionUser[];
+};
+
 export type Option = {
     id: string;
     name: string;
@@ -83,4 +95,10 @@ export type OptionUser = {
     name: string;
     email?: string;
     division_id?: string | null;
+};
+
+export type OptionProject = {
+    id: string;
+    code: string;
+    title: string;
 };

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -51,5 +52,15 @@ class User extends Authenticatable implements PasskeyUser
     public function ownedProjects(): HasMany
     {
         return $this->hasMany(Project::class, 'owner_id');
+    }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class)->withTimestamps();
+    }
+
+    public function ledTeams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'leader_id');
     }
 }

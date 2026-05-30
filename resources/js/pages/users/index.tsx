@@ -1,8 +1,10 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Download, Edit, Plus, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 import {
     destroy,
+    exportMethod,
+    importMethod,
     index,
     store,
     update,
@@ -19,12 +21,17 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { ManagedUser, Option, Paginated } from '@/types';
+import type { Auth, ManagedUser, Option, Paginated } from '@/types';
 
 type Props = {
     users: Paginated<ManagedUser>;
     roles: string[];
     divisions: Option[];
+    filters: {
+        search?: string;
+        role?: string;
+        division_id?: string;
+    };
 };
 
 type UserFormDialogProps = {
@@ -193,7 +200,17 @@ function UserFormDialog({
     );
 }
 
-export default function UsersIndex({ users, roles, divisions }: Props) {
+export default function UsersIndex({
+    users,
+    roles,
+    divisions,
+    filters,
+}: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const permissions = new Set(auth.permissions);
+    const canCreate = permissions.has('user.create');
+    const canUpdate = permissions.has('user.update');
+    const canDelete = permissions.has('user.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
 
@@ -215,11 +232,88 @@ export default function UsersIndex({ users, roles, divisions }: Props) {
                             Kelola akun, divisi, dan role pengguna aplikasi.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus />
-                        Tambah
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline">
+                            <a href={exportMethod.url({ query: filters })}>
+                                <Download />
+                                Export
+                            </a>
+                        </Button>
+                        {canCreate && (
+                            <Form
+                                {...importMethod.form()}
+                                options={{ preserveScroll: true }}
+                                encType="multipart/form-data"
+                            >
+                                {({ processing }) => (
+                                    <label>
+                                        <input
+                                            type="file"
+                                            name="file"
+                                            accept=".csv,text/csv"
+                                            className="sr-only"
+                                            onChange={(event) => {
+                                                event.currentTarget.form?.requestSubmit();
+                                            }}
+                                        />
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            disabled={processing}
+                                        >
+                                            <span>
+                                                <Upload />
+                                                Import
+                                            </span>
+                                        </Button>
+                                    </label>
+                                )}
+                            </Form>
+                        )}
+                        {canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Tambah User
+                            </Button>
+                        )}
+                    </div>
                 </div>
+
+                <Form
+                    {...index.form()}
+                    className="grid gap-3 rounded-lg border p-3 md:grid-cols-[1fr_220px_220px_auto]"
+                >
+                    <Input
+                        name="search"
+                        defaultValue={filters.search ?? ''}
+                        placeholder="Cari nama, email, atau NIK"
+                    />
+                    <select
+                        name="role"
+                        defaultValue={filters.role ?? ''}
+                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                    >
+                        <option value="">Semua role</option>
+                        {roles.map((role) => (
+                            <option key={role} value={role}>
+                                {role}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        name="division_id"
+                        defaultValue={filters.division_id ?? ''}
+                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                    >
+                        <option value="">Semua divisi</option>
+                        {divisions.map((division) => (
+                            <option key={division.id} value={division.id}>
+                                {division.name}
+                            </option>
+                        ))}
+                    </select>
+                    <Button>Filter</Button>
+                </Form>
 
                 <div className="overflow-hidden rounded-lg border">
                     <div className="overflow-x-auto">
@@ -238,9 +332,11 @@ export default function UsersIndex({ users, roles, divisions }: Props) {
                                     <th className="px-4 py-3 font-medium">
                                         Role
                                     </th>
-                                    <th className="w-24 px-4 py-3 text-right font-medium">
-                                        Aksi
-                                    </th>
+                                    {(canUpdate || canDelete) && (
+                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                            Aksi
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -268,28 +364,36 @@ export default function UsersIndex({ users, roles, divisions }: Props) {
                                                 .map((role) => role.name)
                                                 .join(', ') || '-'}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setEditingUser(user)
-                                                    }
-                                                >
-                                                    <Edit />
-                                                </Button>
-                                                <Button
-                                                    size="icon-sm"
-                                                    variant="destructive"
-                                                    onClick={() =>
-                                                        deleteUser(user)
-                                                    }
-                                                >
-                                                    <Trash2 />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        {(canUpdate || canDelete) && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {canUpdate && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setEditingUser(
+                                                                    user,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="icon-sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                deleteUser(user)
+                                                            }
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -316,13 +420,15 @@ export default function UsersIndex({ users, roles, divisions }: Props) {
                 </div>
             </div>
 
-            <UserFormDialog
-                roles={roles}
-                divisions={divisions}
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-            />
-            {editingUser && (
+            {canCreate && (
+                <UserFormDialog
+                    roles={roles}
+                    divisions={divisions}
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                />
+            )}
+            {canUpdate && editingUser && (
                 <UserFormDialog
                     roles={roles}
                     divisions={divisions}
