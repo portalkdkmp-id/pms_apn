@@ -63,4 +63,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Team::class, 'leader_id');
     }
+
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
+    }
 }

@@ -85,6 +85,37 @@ export type Team = {
     members: OptionUser[];
 };
 
+export type Task = {
+    id: string;
+    project_id: string;
+    parent_id: string | null;
+    assignee_id: string | null;
+    status_id: number;
+    title: string;
+    description: string | null;
+    priority: string;
+    kpi_point: string;
+    start_date: string | null;
+    due_date: string | null;
+    completed_at: string | null;
+    project?: Pick<Project, 'id' | 'code' | 'title' | 'division_id'> | null;
+    parent?: Pick<Task, 'id' | 'title'> | null;
+    assignee?: OptionUser | null;
+    status?: Pick<ProjectStatus, 'id' | 'name' | 'color'> | null;
+    subtasks?: Pick<
+        Task,
+        'id' | 'parent_id' | 'title' | 'status_id' | 'assignee_id' | 'kpi_point'
+    >[];
+};
+
+export type TaskProject = OptionProject & {
+    division_id: string;
+    teams: Array<{
+        id: string;
+        members: OptionUser[];
+    }>;
+};
+
 export type Option = {
     id: string;
     name: string;
