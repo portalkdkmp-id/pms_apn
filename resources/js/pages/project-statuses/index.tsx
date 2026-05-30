@@ -50,7 +50,7 @@ function StatusFormDialog({
 
                 <Form
                     {...(projectStatus
-                        ? update.form(String(projectStatus.id))
+                        ? update.form(projectStatus.id)
                         : store.form())}
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
@@ -154,7 +154,7 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
 
     const deleteStatus = (projectStatus: ProjectStatus) => {
         if (window.confirm(`Hapus status ${projectStatus.name}?`)) {
-            router.delete(destroy.url(String(projectStatus.id)), {
+            router.delete(destroy.url(projectStatus.id), {
                 preserveScroll: true,
             });
         }
