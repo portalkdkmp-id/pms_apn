@@ -9,6 +9,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/UserController';
+import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,6 +51,9 @@ function UserFormDialog({
     onOpenChange,
 }: UserFormDialogProps) {
     const selectedRoles = user?.roles.map((role) => role.name) ?? [];
+    const [divisionId, setDivisionId] = useState(
+        formSelectValue(user?.division_id),
+    );
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,22 +119,17 @@ function UserFormDialog({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="division_id">Divisi</Label>
-                                    <select
+                                    <FormSelect
                                         id="division_id"
                                         name="division_id"
-                                        defaultValue={user?.division_id ?? ''}
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Tanpa divisi</option>
-                                        {divisions.map((division) => (
-                                            <option
-                                                key={division.id}
-                                                value={division.id}
-                                            >
-                                                {division.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={divisionId}
+                                        onValueChange={setDivisionId}
+                                        placeholder="Tanpa divisi"
+                                        options={divisions.map((division) => ({
+                                            label: division.name,
+                                            value: division.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.division_id} />
                                 </div>
                                 <div className="grid gap-2">
@@ -213,6 +212,10 @@ export default function UsersIndex({
     const canDelete = permissions.has('user.delete');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+    const [roleFilter, setRoleFilter] = useState(formSelectValue(filters.role));
+    const [divisionFilter, setDivisionFilter] = useState(
+        formSelectValue(filters.division_id),
+    );
 
     const deleteUser = (user: ManagedUser) => {
         if (window.confirm(`Hapus user ${user.name}?`)) {
@@ -288,30 +291,26 @@ export default function UsersIndex({
                         defaultValue={filters.search ?? ''}
                         placeholder="Cari nama, email, atau NIK"
                     />
-                    <select
+                    <FormSelect
                         name="role"
-                        defaultValue={filters.role ?? ''}
-                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                    >
-                        <option value="">Semua role</option>
-                        {roles.map((role) => (
-                            <option key={role} value={role}>
-                                {role}
-                            </option>
-                        ))}
-                    </select>
-                    <select
+                        value={roleFilter}
+                        onValueChange={setRoleFilter}
+                        placeholder="Semua role"
+                        options={roles.map((role) => ({
+                            label: role,
+                            value: role,
+                        }))}
+                    />
+                    <FormSelect
                         name="division_id"
-                        defaultValue={filters.division_id ?? ''}
-                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                    >
-                        <option value="">Semua divisi</option>
-                        {divisions.map((division) => (
-                            <option key={division.id} value={division.id}>
-                                {division.name}
-                            </option>
-                        ))}
-                    </select>
+                        value={divisionFilter}
+                        onValueChange={setDivisionFilter}
+                        placeholder="Semua divisi"
+                        options={divisions.map((division) => ({
+                            label: division.name,
+                            value: division.id,
+                        }))}
+                    />
                     <Button>Filter</Button>
                 </Form>
 

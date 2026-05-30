@@ -29,7 +29,6 @@ class UpdateProjectRequest extends FormRequest
             'owner_id' => ['required', 'uuid', 'exists:users,id'],
             'status_id' => ['required', 'integer', 'exists:project_statuses,id'],
             'priority' => ['required', 'string', Rule::in(['low', 'medium', 'high', 'critical'])],
-            'kpi_value' => ['nullable', 'numeric', 'min:0'],
             'kpi_target' => ['nullable', 'numeric', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

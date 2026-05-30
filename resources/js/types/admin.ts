@@ -63,7 +63,6 @@ export type Project = {
     owner_id: string;
     status_id: number;
     priority: string;
-    kpi_value: string | null;
     kpi_target: string | null;
     start_date: string | null;
     end_date: string | null;

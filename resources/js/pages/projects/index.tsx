@@ -7,6 +7,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/ProjectController';
+import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,6 +56,17 @@ function ProjectFormDialog({
     open,
     onOpenChange,
 }: ProjectFormDialogProps) {
+    const [divisionId, setDivisionId] = useState(
+        formSelectValue(project?.division_id),
+    );
+    const [ownerId, setOwnerId] = useState(formSelectValue(project?.owner_id));
+    const [statusId, setStatusId] = useState(
+        formSelectValue(project?.status_id),
+    );
+    const [priority, setPriority] = useState(
+        formSelectValue(project?.priority ?? 'medium'),
+    );
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-4xl">
@@ -97,102 +109,63 @@ function ProjectFormDialog({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="division_id">Divisi</Label>
-                                    <select
+                                    <FormSelect
                                         id="division_id"
                                         name="division_id"
-                                        defaultValue={
-                                            project?.division_id ?? ''
-                                        }
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih divisi</option>
-                                        {divisions.map((division) => (
-                                            <option
-                                                key={division.id}
-                                                value={division.id}
-                                            >
-                                                {division.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={divisionId}
+                                        onValueChange={setDivisionId}
+                                        placeholder="Pilih divisi"
+                                        options={divisions.map((division) => ({
+                                            label: division.name,
+                                            value: division.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.division_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="owner_id">Owner</Label>
-                                    <select
+                                    <FormSelect
                                         id="owner_id"
                                         name="owner_id"
-                                        defaultValue={project?.owner_id ?? ''}
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih owner</option>
-                                        {owners.map((owner) => (
-                                            <option
-                                                key={owner.id}
-                                                value={owner.id}
-                                            >
-                                                {owner.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={ownerId}
+                                        onValueChange={setOwnerId}
+                                        placeholder="Pilih owner"
+                                        options={owners.map((owner) => ({
+                                            label: owner.name,
+                                            value: owner.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.owner_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="status_id">Status</Label>
-                                    <select
+                                    <FormSelect
                                         id="status_id"
                                         name="status_id"
-                                        defaultValue={project?.status_id ?? ''}
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih status</option>
-                                        {statuses.map((status) => (
-                                            <option
-                                                key={status.id}
-                                                value={status.id}
-                                            >
-                                                {status.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={statusId}
+                                        onValueChange={setStatusId}
+                                        placeholder="Pilih status"
+                                        options={statuses.map((status) => ({
+                                            label: status.name,
+                                            value: String(status.id),
+                                        }))}
+                                    />
                                     <InputError message={errors.status_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="priority">Priority</Label>
-                                    <select
+                                    <FormSelect
                                         id="priority"
                                         name="priority"
-                                        defaultValue={
-                                            project?.priority ?? 'medium'
-                                        }
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        {priorities.map((priority) => (
-                                            <option
-                                                key={priority}
-                                                value={priority}
-                                            >
-                                                {priority}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <InputError message={errors.priority} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="kpi_value">KPI value</Label>
-                                    <Input
-                                        id="kpi_value"
-                                        name="kpi_value"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        defaultValue={project?.kpi_value ?? ''}
+                                        value={priority}
+                                        onValueChange={setPriority}
+                                        placeholder="Pilih priority"
+                                        options={priorities.map((priority) => ({
+                                            label: priority,
+                                            value: priority,
+                                        }))}
                                     />
-                                    <InputError message={errors.kpi_value} />
+                                    <InputError message={errors.priority} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="kpi_target">

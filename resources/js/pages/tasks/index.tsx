@@ -7,6 +7,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/TaskController';
+import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,7 +62,17 @@ function TaskFormDialog({
     open,
     onOpenChange,
 }: TaskFormDialogProps) {
-    const [projectId, setProjectId] = useState(task?.project_id ?? '');
+    const [projectId, setProjectId] = useState(
+        formSelectValue(task?.project_id),
+    );
+    const [parentId, setParentId] = useState(formSelectValue(task?.parent_id));
+    const [assigneeId, setAssigneeId] = useState(
+        formSelectValue(task?.assignee_id),
+    );
+    const [statusId, setStatusId] = useState(formSelectValue(task?.status_id));
+    const [priority, setPriority] = useState(
+        formSelectValue(task?.priority ?? 'medium'),
+    );
     const project = projects.find((item) => item.id === projectId);
     const assignees = project
         ? uniqueUsers(project.teams.flatMap((team) => team.members))
@@ -92,48 +103,40 @@ function TaskFormDialog({
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="project_id">Project</Label>
-                                    <select
+                                    <FormSelect
                                         id="project_id"
                                         name="project_id"
                                         value={projectId}
-                                        onChange={(event) =>
-                                            setProjectId(event.target.value)
-                                        }
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih project</option>
-                                        {projects.map((project) => (
-                                            <option
-                                                key={project.id}
-                                                value={project.id}
-                                            >
-                                                {project.code} - {project.title}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        onValueChange={(value) => {
+                                            setProjectId(value);
+                                            setParentId(formSelectValue());
+                                            setAssigneeId(formSelectValue());
+                                        }}
+                                        placeholder="Pilih project"
+                                        options={projects.map((project) => ({
+                                            label: `${project.code} - ${project.title}`,
+                                            value: project.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.project_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="parent_id">
                                         Parent task
                                     </Label>
-                                    <select
+                                    <FormSelect
                                         id="parent_id"
                                         name="parent_id"
-                                        defaultValue={task?.parent_id ?? ''}
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Tanpa parent</option>
-                                        {availableParents.map((parent) => (
-                                            <option
-                                                key={parent.id}
-                                                value={parent.id}
-                                            >
-                                                {parent.title}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={parentId}
+                                        onValueChange={setParentId}
+                                        placeholder="Tanpa parent"
+                                        options={availableParents.map(
+                                            (parent) => ({
+                                                label: parent.title,
+                                                value: parent.id,
+                                            }),
+                                        )}
+                                    />
                                     <InputError message={errors.parent_id} />
                                 </div>
                                 <div className="grid gap-2">
@@ -150,65 +153,47 @@ function TaskFormDialog({
                                     <Label htmlFor="assignee_id">
                                         Assignee
                                     </Label>
-                                    <select
+                                    <FormSelect
                                         id="assignee_id"
                                         name="assignee_id"
-                                        defaultValue={task?.assignee_id ?? ''}
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Belum assigned</option>
-                                        {assignees.map((user) => (
-                                            <option
-                                                key={user.id}
-                                                value={user.id}
-                                            >
-                                                {user.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={assigneeId}
+                                        onValueChange={setAssigneeId}
+                                        placeholder="Belum assigned"
+                                        options={assignees.map((user) => ({
+                                            label: user.name,
+                                            value: user.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.assignee_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="status_id">Status</Label>
-                                    <select
+                                    <FormSelect
                                         id="status_id"
                                         name="status_id"
-                                        defaultValue={task?.status_id ?? ''}
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih status</option>
-                                        {statuses.map((status) => (
-                                            <option
-                                                key={status.id}
-                                                value={status.id}
-                                            >
-                                                {status.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={statusId}
+                                        onValueChange={setStatusId}
+                                        placeholder="Pilih status"
+                                        options={statuses.map((status) => ({
+                                            label: status.name,
+                                            value: String(status.id),
+                                        }))}
+                                    />
                                     <InputError message={errors.status_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="priority">Priority</Label>
-                                    <select
+                                    <FormSelect
                                         id="priority"
                                         name="priority"
-                                        defaultValue={
-                                            task?.priority ?? 'medium'
-                                        }
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        {priorities.map((priority) => (
-                                            <option
-                                                key={priority}
-                                                value={priority}
-                                            >
-                                                {priority}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={priority}
+                                        onValueChange={setPriority}
+                                        placeholder="Pilih priority"
+                                        options={priorities.map((priority) => ({
+                                            label: priority,
+                                            value: priority,
+                                        }))}
+                                    />
                                     <InputError message={errors.priority} />
                                 </div>
                                 <div className="grid gap-2">

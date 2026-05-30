@@ -54,18 +54,30 @@ class DashboardController extends Controller
                 'value' => $division->count,
             ]);
 
+        $doneStatusId = ProjectStatus::query()->where('slug', 'done')->value('id');
+        $closedStatusIds = ProjectStatus::query()
+            ->whereIn('slug', ['done', 'canceled'])
+            ->pluck('id');
+        $visibleProjectIds = (clone $projectQuery)->pluck('id');
         $totalKpiTarget = (float) (clone $projectQuery)->sum('kpi_target');
-        $totalKpiValue = (float) (clone $projectQuery)->sum('kpi_value');
-        $taskKpiPoints = (float) (clone $taskQuery)->sum('kpi_point');
-        $completedTaskKpiPoints = (float) (clone $taskQuery)->whereNotNull('completed_at')->sum('kpi_point');
+        $taskKpiPoints = (float) Task::query()
+            ->whereIn('project_id', $visibleProjectIds)
+            ->sum('kpi_point');
+        $completedTaskKpiPoints = $doneStatusId
+            ? (float) Task::query()
+                ->whereIn('project_id', $visibleProjectIds)
+                ->where('status_id', $doneStatusId)
+                ->sum('kpi_point')
+            : 0.0;
+        $totalKpiValue = min($completedTaskKpiPoints, $totalKpiTarget);
 
         return Inertia::render('dashboard', [
             'stats' => [
                 'projects' => (clone $projectQuery)->count(),
                 'activeProjects' => (clone $projectQuery)->whereHas('status', fn (Builder $query) => $query->whereNotIn('slug', ['done', 'canceled']))->count(),
                 'tasks' => (clone $taskQuery)->count(),
-                'openTasks' => (clone $taskQuery)->whereNull('completed_at')->count(),
-                'overdueTasks' => (clone $taskQuery)->whereNull('completed_at')->whereDate('due_date', '<', now()->toDateString())->count(),
+                'openTasks' => (clone $taskQuery)->when($closedStatusIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('status_id', $closedStatusIds))->count(),
+                'overdueTasks' => (clone $taskQuery)->when($closedStatusIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('status_id', $closedStatusIds))->whereDate('due_date', '<', now()->toDateString())->count(),
                 'teams' => Team::query()->whereHas('project', fn (Builder $query) => $this->scopeProjectVisibility($query, $user))->count(),
                 'users' => User::query()->count(),
                 'divisions' => Division::query()->count(),
@@ -96,7 +108,7 @@ class DashboardController extends Controller
                 ]),
             'overdueTasks' => (clone $taskQuery)
                 ->with(['project:id,code,title', 'assignee:id,name', 'status:id,name,color'])
-                ->whereNull('completed_at')
+                ->when($closedStatusIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('status_id', $closedStatusIds))
                 ->whereDate('due_date', '<', now()->toDateString())
                 ->orderBy('due_date')
                 ->limit(6)
@@ -113,7 +125,7 @@ class DashboardController extends Controller
             'myTasks' => Task::query()
                 ->with(['project:id,code,title', 'status:id,name,color'])
                 ->where('assignee_id', $user->id)
-                ->whereNull('completed_at')
+                ->when($closedStatusIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('status_id', $closedStatusIds))
                 ->orderByRaw('due_date is null')
                 ->orderBy('due_date')
                 ->limit(6)

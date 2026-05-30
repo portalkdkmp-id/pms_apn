@@ -15,14 +15,14 @@ class ProjectDemoSeeder extends Seeder
     public function run(): void
     {
         $backlog = ProjectStatus::where('slug', 'backlog')->firstOrFail();
-        $todo = ProjectStatus::where('slug', 'todo')->firstOrFail();
         $inProgress = ProjectStatus::where('slug', 'in-progress')->firstOrFail();
+        $done = ProjectStatus::where('slug', 'done')->firstOrFail();
 
         Division::query()
             ->with(['manager', 'users'])
             ->orderBy('name')
             ->get()
-            ->each(function (Division $division) use ($backlog, $todo, $inProgress) {
+            ->each(function (Division $division) use ($backlog, $inProgress, $done) {
                 $owner = $division->manager ?? $division->users->first();
 
                 if (! $owner) {
@@ -38,8 +38,7 @@ class ProjectDemoSeeder extends Seeder
                         'owner_id' => $owner->id,
                         'status_id' => $inProgress->id,
                         'priority' => 'medium',
-                        'kpi_value' => 0,
-                        'kpi_target' => 10,
+                        'kpi_target' => 100,
                         'start_date' => now()->startOfMonth()->toDateString(),
                         'expected_deadline' => now()->addMonth()->endOfMonth()->toDateString(),
                     ],
@@ -69,7 +68,7 @@ class ProjectDemoSeeder extends Seeder
                         'status_id' => $inProgress->id,
                         'description' => 'Menyusun rencana kerja dan target KPI.',
                         'priority' => 'high',
-                        'kpi_point' => 1.25,
+                        'kpi_point' => 10,
                         'start_date' => now()->startOfMonth()->toDateString(),
                         'due_date' => now()->addDays(10)->toDateString(),
                     ],
@@ -86,12 +85,13 @@ class ProjectDemoSeeder extends Seeder
                         [
                             'parent_id' => $parent->id,
                             'assignee_id' => $assignee->id,
-                            'status_id' => $index === 0 ? $todo->id : $backlog->id,
+                            'status_id' => $index === 0 ? $done->id : $backlog->id,
                             'description' => 'Sub task demo untuk anggota team.',
                             'priority' => $index === 0 ? 'medium' : 'low',
-                            'kpi_point' => $index === 0 ? 0.75 : 0.50,
+                            'kpi_point' => 10,
                             'start_date' => now()->addDays($index + 2)->toDateString(),
                             'due_date' => now()->addDays(14 + $index)->toDateString(),
+                            'completed_at' => $index === 0 ? now()->toDateString() : null,
                         ],
                     );
                 }

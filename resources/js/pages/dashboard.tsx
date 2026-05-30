@@ -241,7 +241,7 @@ export default function Dashboard({
                     <StatCard
                         title="KPI Project"
                         value={`${stats.kpiPercent}%`}
-                        description={`${stats.kpiValue} dari target ${stats.kpiTarget}`}
+                        description={`${stats.kpiValue} KPI task done dari target ${stats.kpiTarget}`}
                         icon={Target}
                     />
                 </div>
@@ -251,8 +251,8 @@ export default function Dashboard({
                         <CardHeader>
                             <CardTitle>Progress KPI</CardTitle>
                             <CardDescription>
-                                Perbandingan KPI project dan KPI point task yang
-                                terlihat.
+                                KPI project dihitung dari KPI point task yang
+                                berstatus Done.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-5">
@@ -288,7 +288,7 @@ export default function Dashboard({
                                 <p className="text-xs text-muted-foreground">
                                     {stats.completedTaskKpiPoints} dari{' '}
                                     {stats.taskKpiPoints} KPI point task
-                                    selesai.
+                                    berstatus Done.
                                 </p>
                             </div>
                         </CardContent>

@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'owner_id',
     'status_id',
     'priority',
-    'kpi_value',
     'kpi_target',
     'start_date',
     'end_date',
@@ -31,7 +30,6 @@ class Project extends Model
     protected function casts(): array
     {
         return [
-            'kpi_value' => 'decimal:2',
             'kpi_target' => 'decimal:2',
             'start_date' => 'date',
             'end_date' => 'date',

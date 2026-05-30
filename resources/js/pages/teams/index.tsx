@@ -7,6 +7,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/TeamController';
+import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,6 +44,10 @@ function TeamFormDialog({
     onOpenChange,
 }: TeamFormDialogProps) {
     const selectedMemberIds = team?.members.map((member) => member.id) ?? [];
+    const [projectId, setProjectId] = useState(
+        formSelectValue(team?.project_id),
+    );
+    const [leaderId, setLeaderId] = useState(formSelectValue(team?.leader_id));
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,43 +91,32 @@ function TeamFormDialog({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="project_id">Project</Label>
-                                    <select
+                                    <FormSelect
                                         id="project_id"
                                         name="project_id"
-                                        defaultValue={team?.project_id ?? ''}
-                                        required
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Pilih project</option>
-                                        {projects.map((project) => (
-                                            <option
-                                                key={project.id}
-                                                value={project.id}
-                                            >
-                                                {project.code} - {project.title}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={projectId}
+                                        onValueChange={setProjectId}
+                                        placeholder="Pilih project"
+                                        options={projects.map((project) => ({
+                                            label: `${project.code} - ${project.title}`,
+                                            value: project.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.project_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="leader_id">Leader</Label>
-                                    <select
+                                    <FormSelect
                                         id="leader_id"
                                         name="leader_id"
-                                        defaultValue={team?.leader_id ?? ''}
-                                        className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                    >
-                                        <option value="">Tanpa leader</option>
-                                        {users.map((user) => (
-                                            <option
-                                                key={user.id}
-                                                value={user.id}
-                                            >
-                                                {user.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={leaderId}
+                                        onValueChange={setLeaderId}
+                                        placeholder="Tanpa leader"
+                                        options={users.map((user) => ({
+                                            label: user.name,
+                                            value: user.id,
+                                        }))}
+                                    />
                                     <InputError message={errors.leader_id} />
                                 </div>
                                 <div className="grid gap-2 sm:col-span-2">

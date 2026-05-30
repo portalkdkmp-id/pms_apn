@@ -7,6 +7,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/DivisionController';
+import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,6 +40,10 @@ function DivisionFormDialog({
     open,
     onOpenChange,
 }: DivisionFormDialogProps) {
+    const [managerId, setManagerId] = useState(
+        formSelectValue(division?.manager_id),
+    );
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
@@ -80,19 +85,17 @@ function DivisionFormDialog({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="manager_id">Manager</Label>
-                                <select
+                                <FormSelect
                                     id="manager_id"
                                     name="manager_id"
-                                    defaultValue={division?.manager_id ?? ''}
-                                    className="h-8 rounded-2xl bg-input/50 px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-                                >
-                                    <option value="">Belum ada manager</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    value={managerId}
+                                    onValueChange={setManagerId}
+                                    placeholder="Belum ada manager"
+                                    options={users.map((user) => ({
+                                        label: user.name,
+                                        value: user.id,
+                                    }))}
+                                />
                                 <InputError message={errors.manager_id} />
                             </div>
                             <div className="grid gap-2">
