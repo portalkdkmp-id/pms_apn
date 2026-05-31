@@ -28,6 +28,7 @@ import type {
     Task,
     TaskProject,
 } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
 
 type Props = {
     tasks: Paginated<Task>;
@@ -251,7 +252,7 @@ function TaskFormDialog({
                                     <Label htmlFor="description">
                                         Deskripsi
                                     </Label>
-                                    <textarea
+                                    <Textarea
                                         id="description"
                                         name="description"
                                         defaultValue={task?.description ?? ''}

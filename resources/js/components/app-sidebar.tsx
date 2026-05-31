@@ -42,6 +42,18 @@ const mainNavItems: PermissionNavItem[] = [
         permission: 'dashboard.view',
     },
     {
+        title: 'Proyek',
+        href: projectsIndex(),
+        icon: PanelsTopLeft,
+        permission: 'project.view',
+    },
+    {
+        title: 'Tugas / Aktivitas',
+        href: tasksIndex(),
+        icon: SquareCheckBig,
+        permission: 'task.view',
+    },
+    {
         title: 'Users',
         href: usersIndex(),
         icon: Users,
@@ -54,34 +66,22 @@ const mainNavItems: PermissionNavItem[] = [
         permission: 'division.view',
     },
     {
-        title: 'Status',
-        href: projectStatusesIndex(),
-        icon: ListTodo,
-        permission: 'project_status.view',
-    },
-    {
-        title: 'Projects',
-        href: projectsIndex(),
-        icon: PanelsTopLeft,
-        permission: 'project.view',
-    },
-    {
         title: 'Teams',
         href: teamsIndex(),
         icon: UsersRound,
         permission: 'team.view',
     },
     {
-        title: 'Tasks',
-        href: tasksIndex(),
-        icon: SquareCheckBig,
-        permission: 'task.view',
-    },
-    {
-        title: 'Roles',
+        title: 'Roles & Permissions',
         href: rolesIndex(),
         icon: ShieldCheck,
         permission: 'role.view',
+    },
+    {
+        title: 'Status Tags',
+        href: projectStatusesIndex(),
+        icon: ListTodo,
+        permission: 'project_status.view',
     },
 ];
 

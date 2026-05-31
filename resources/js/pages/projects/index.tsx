@@ -28,6 +28,7 @@ import type {
     ProjectStatus,
     Auth,
 } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
 
 type Props = {
     projects: Paginated<Project>;
@@ -227,13 +228,12 @@ function ProjectFormDialog({
                                     <Label htmlFor="description">
                                         Deskripsi
                                     </Label>
-                                    <textarea
+                                    <Textarea
                                         id="description"
                                         name="description"
                                         defaultValue={
                                             project?.description ?? ''
                                         }
-                                        className="min-h-24 rounded-2xl bg-input/50 px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
                                     />
                                     <InputError message={errors.description} />
                                 </div>
