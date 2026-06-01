@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type {
     Auth,
+    Option,
     OptionUser,
     Paginated,
     ProjectStatus,
@@ -33,6 +34,7 @@ import type {
 type Props = {
     tasks: Paginated<Task>;
     projects: TaskProject[];
+    divisions: Option[];
     parentTasks: Pick<Task, 'id' | 'project_id' | 'title'>[];
     users: OptionUser[];
     statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
@@ -55,6 +57,7 @@ function uniqueUsers(users: OptionUser[]): OptionUser[] {
 
 function TaskFormDialog({
     projects,
+    divisions,
     parentTasks,
     users,
     statuses,
@@ -67,6 +70,9 @@ function TaskFormDialog({
         formSelectValue(task?.project_id),
     );
     const [parentId, setParentId] = useState(formSelectValue(task?.parent_id));
+    const [divisionId, setDivisionId] = useState(
+        formSelectValue(task?.division_id),
+    );
     const [assigneeId, setAssigneeId] = useState(
         formSelectValue(task?.assignee_id),
     );
@@ -74,10 +80,13 @@ function TaskFormDialog({
     const [priority, setPriority] = useState(
         formSelectValue(task?.priority ?? 'medium'),
     );
-    const project = projects.find((item) => item.id === projectId);
-    const assignees = project
-        ? uniqueUsers(project.teams.flatMap((team) => team.members))
-        : users;
+    const assignees = uniqueUsers(
+        users.filter(
+            (user) =>
+                divisionId === formSelectValue() ||
+                user.division_id === divisionId,
+        ),
+    );
     const availableParents = parentTasks.filter(
         (item) => item.project_id === projectId && item.id !== task?.id,
     );
@@ -110,6 +119,14 @@ function TaskFormDialog({
                                         value={projectId}
                                         onValueChange={(value) => {
                                             setProjectId(value);
+                                            const nextProject = projects.find(
+                                                (item) => item.id === value,
+                                            );
+                                            setDivisionId(
+                                                formSelectValue(
+                                                    nextProject?.division_id,
+                                                ),
+                                            );
                                             setParentId(formSelectValue());
                                             setAssigneeId(formSelectValue());
                                         }}
@@ -151,15 +168,31 @@ function TaskFormDialog({
                                     <InputError message={errors.title} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="assignee_id">
-                                        Assignee
-                                    </Label>
+                                    <Label htmlFor="division_id">Divisi</Label>
+                                    <FormSelect
+                                        id="division_id"
+                                        name="division_id"
+                                        value={divisionId}
+                                        onValueChange={(value) => {
+                                            setDivisionId(value);
+                                            setAssigneeId(formSelectValue());
+                                        }}
+                                        placeholder="Pilih divisi"
+                                        options={divisions.map((division) => ({
+                                            label: division.name,
+                                            value: division.id,
+                                        }))}
+                                    />
+                                    <InputError message={errors.division_id} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="assignee_id">PIC</Label>
                                     <FormSelect
                                         id="assignee_id"
                                         name="assignee_id"
                                         value={assigneeId}
                                         onValueChange={setAssigneeId}
-                                        placeholder="Belum assigned"
+                                        placeholder="Belum ada PIC"
                                         options={assignees.map((user) => ({
                                             label: user.name,
                                             value: user.id,
@@ -285,6 +318,7 @@ function TaskFormDialog({
 export default function TasksIndex({
     tasks,
     projects,
+    divisions,
     parentTasks,
     users,
     statuses,
@@ -348,7 +382,7 @@ export default function TasksIndex({
                                         Project
                                     </th>
                                     <th className="px-4 py-3 font-medium">
-                                        Assignee
+                                        Divisi / PIC
                                     </th>
                                     <th className="px-4 py-3 font-medium">
                                         Status
@@ -385,7 +419,12 @@ export default function TasksIndex({
                                                 : '-'}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {task.assignee?.name ?? '-'}
+                                            <div>
+                                                {task.division?.name ?? '-'}
+                                            </div>
+                                            <div className="text-muted-foreground">
+                                                {task.assignee?.name ?? '-'}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
@@ -466,6 +505,7 @@ export default function TasksIndex({
             {canCreate && (
                 <TaskFormDialog
                     projects={projects}
+                    divisions={divisions}
                     parentTasks={parentTasks}
                     users={users}
                     statuses={statuses}
@@ -477,6 +517,7 @@ export default function TasksIndex({
             {canUpdate && editingTask && (
                 <TaskFormDialog
                     projects={projects}
+                    divisions={divisions}
                     parentTasks={parentTasks}
                     users={users}
                     statuses={statuses}

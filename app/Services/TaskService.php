@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,6 +18,7 @@ class TaskService
             ->with([
                 'project:id,code,title,division_id',
                 'parent:id,title',
+                'division:id,name',
                 'assignee:id,name,email',
                 'status:id,name,color',
                 'subtasks:id,parent_id,title,status_id,assignee_id,kpi_point',
@@ -32,7 +34,9 @@ class TaskService
             } else {
                 $query->where(function ($query) use ($user, $canViewDivision, $canViewAssigned) {
                     if ($canViewDivision) {
-                        $query->orWhereHas('project', fn ($query) => $query->where('division_id', $user->division_id));
+                        $query
+                            ->orWhere('division_id', $user->division_id)
+                            ->orWhereHas('project', fn ($query) => $query->where('division_id', $user->division_id));
                     }
 
                     if ($canViewAssigned) {
@@ -50,6 +54,8 @@ class TaskService
      */
     public function create(array $data): Task
     {
+        $data = $this->withFallbackDivision($data);
+
         return Task::create($data);
     }
 
@@ -58,6 +64,8 @@ class TaskService
      */
     public function update(Task $task, array $data): Task
     {
+        $data = $this->withFallbackDivision($data);
+
         $task->update($data);
 
         return $task->refresh();
@@ -66,5 +74,23 @@ class TaskService
     public function delete(Task $task): void
     {
         $task->delete();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withFallbackDivision(array $data): array
+    {
+        if (! empty($data['division_id'])) {
+            return $data;
+        }
+
+        $projectId = $data['project_id'] ?? null;
+        if ($projectId) {
+            $data['division_id'] = Project::query()->whereKey($projectId)->value('division_id');
+        }
+
+        return $data;
     }
 }

@@ -57,7 +57,7 @@ function RoleFormDialog({
                 </DialogHeader>
 
                 <Form
-                    {...(role ? update.form(role.id) : store.form())}
+                    {...(role ? update.form(String(role.id)) : store.form())}
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -127,7 +127,7 @@ export default function RolesIndex({ roles, permissions }: Props) {
 
     const deleteRole = (role: ManagedRole) => {
         if (window.confirm(`Hapus role ${role.name}?`)) {
-            router.delete(destroy.url(role.id), {
+            router.delete(destroy.url(String(role.id)), {
                 preserveScroll: true,
             });
         }
