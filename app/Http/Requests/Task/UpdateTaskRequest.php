@@ -4,6 +4,7 @@ namespace App\Http\Requests\Task;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -42,6 +43,7 @@ class UpdateTaskRequest extends FormRequest
         return [
             'project_id' => ['required', 'uuid', 'exists:projects,id'],
             'parent_id' => ['nullable', 'uuid', 'exists:tasks,id', Rule::notIn([$task->id])],
+            'division_id' => ['nullable', 'uuid', 'exists:divisions,id'],
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'status_id' => ['required', 'integer', 'exists:project_statuses,id'],
             'title' => ['required', 'string', 'max:255'],
@@ -58,9 +60,7 @@ class UpdateTaskRequest extends FormRequest
     {
         return [
             function (Validator $validator) {
-                $project = Project::query()
-                    ->with('teams.members:id')
-                    ->find($this->input('project_id'));
+                $project = Project::query()->find($this->input('project_id'));
 
                 if (! $project) {
                     return;
@@ -71,9 +71,10 @@ class UpdateTaskRequest extends FormRequest
                     $validator->errors()->add('parent_id', 'Parent task harus berada pada project yang sama.');
                 }
 
+                $divisionId = $this->input('division_id') ?: $project->division_id;
                 $assigneeId = $this->input('assignee_id');
-                if ($assigneeId && ! $project->teams->flatMap->members->pluck('id')->contains($assigneeId)) {
-                    $validator->errors()->add('assignee_id', 'Assignee harus merupakan member team pada project terkait.');
+                if ($assigneeId && User::query()->whereKey($assigneeId)->where('division_id', '!=', $divisionId)->exists()) {
+                    $validator->errors()->add('assignee_id', 'PIC harus berasal dari divisi task.');
                 }
             },
         ];

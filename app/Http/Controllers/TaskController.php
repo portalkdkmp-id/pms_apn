@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Models\Division;
 use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\Task;
@@ -29,12 +30,13 @@ class TaskController extends Controller
                 ->with('teams.members:id,name,email')
                 ->orderBy('title')
                 ->get(['id', 'code', 'title', 'division_id']),
+            'divisions' => Division::query()->orderBy('name')->get(['id', 'name']),
             'parentTasks' => Task::query()
                 ->orderBy('title')
                 ->get(['id', 'project_id', 'title']),
             'users' => User::query()
                 ->orderBy('name')
-                ->get(['id', 'name', 'email']),
+                ->get(['id', 'name', 'email', 'division_id']),
             'statuses' => ProjectStatus::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -47,14 +49,14 @@ class TaskController extends Controller
     {
         $this->taskService->create($request->validated());
 
-        return to_route('tasks.index')->with('success', 'Task berhasil dibuat.');
+        return back()->with('success', 'Task berhasil dibuat.');
     }
 
     public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
     {
         $this->taskService->update($task, $request->validated());
 
-        return to_route('tasks.index')->with('success', 'Task berhasil diperbarui.');
+        return back()->with('success', 'Task berhasil diperbarui.');
     }
 
     public function destroy(Task $task): RedirectResponse
@@ -63,6 +65,6 @@ class TaskController extends Controller
 
         $this->taskService->delete($task);
 
-        return to_route('tasks.index')->with('success', 'Task berhasil dihapus.');
+        return back()->with('success', 'Task berhasil dihapus.');
     }
 }

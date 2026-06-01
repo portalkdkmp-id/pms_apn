@@ -40,14 +40,14 @@ class ProjectController extends Controller
     {
         $this->projectService->create($request->validated());
 
-        return to_route('projects.index')->with('success', 'Project berhasil dibuat.');
+        return back()->with('success', 'Project berhasil dibuat.');
     }
 
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
         $this->projectService->update($project, $request->validated());
 
-        return to_route('projects.index')->with('success', 'Project berhasil diperbarui.');
+        return back()->with('success', 'Project berhasil diperbarui.');
     }
 
     public function destroy(Project $project): RedirectResponse
@@ -58,6 +58,6 @@ class ProjectController extends Controller
 
         $this->projectService->delete($project, $user);
 
-        return to_route('projects.index')->with('success', 'Project berhasil dihapus.');
+        return back()->with('success', 'Project berhasil dihapus.');
     }
 }

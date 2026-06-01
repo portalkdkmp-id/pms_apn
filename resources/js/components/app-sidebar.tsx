@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
+    GitBranch,
     LayoutGrid,
     ListTodo,
     PanelsTopLeft,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as divisionsIndex } from '@/routes/divisions';
+import { index as flowActivitiesIndex } from '@/routes/flow-activities';
 import { index as projectStatusesIndex } from '@/routes/project-statuses';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as rolesIndex } from '@/routes/roles';
@@ -51,6 +53,12 @@ const mainNavItems: PermissionNavItem[] = [
         title: 'Tugas / Aktivitas',
         href: tasksIndex(),
         icon: SquareCheckBig,
+        permission: 'task.view',
+    },
+    {
+        title: 'Flow Aktivitas',
+        href: flowActivitiesIndex(),
+        icon: GitBranch,
         permission: 'task.view',
     },
     {
