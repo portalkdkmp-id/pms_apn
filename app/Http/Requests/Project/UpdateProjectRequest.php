@@ -23,6 +23,7 @@ class UpdateProjectRequest extends FormRequest
 
         return [
             'code' => ['required', 'string', 'max:255', Rule::unique('projects', 'code')->ignore($project)],
+            'parent_id' => ['nullable', 'uuid', 'exists:projects,id', Rule::notIn([$project->id])],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'division_id' => ['required', 'uuid', 'exists:divisions,id'],

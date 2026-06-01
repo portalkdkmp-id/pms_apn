@@ -25,6 +25,7 @@ class ProjectController extends Controller
 
         return Inertia::render('projects/index', [
             'projects' => $this->projectService->paginateFor($user),
+            'parentProjects' => $this->projectService->parentOptionsFor($user),
             'divisions' => Division::query()->orderBy('name')->get(['id', 'name']),
             'owners' => User::query()->orderBy('name')->get(['id', 'name', 'email', 'division_id']),
             'statuses' => ProjectStatus::query()

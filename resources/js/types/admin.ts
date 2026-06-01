@@ -57,6 +57,7 @@ export type ProjectStatus = {
 export type Project = {
     id: string;
     code: string;
+    parent_id: string | null;
     title: string;
     description: string | null;
     division_id: string;
@@ -68,8 +69,10 @@ export type Project = {
     end_date: string | null;
     expected_deadline: string | null;
     division?: Option | null;
+    parent?: Pick<Project, 'id' | 'code' | 'title' | 'division_id'> | null;
     owner?: OptionUser | null;
     status?: Pick<ProjectStatus, 'id' | 'name' | 'color'> | null;
+    children_count?: number;
 };
 
 export type Team = {

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import type {
     Option,
     OptionUser,
@@ -27,11 +28,12 @@ import type {
     Project,
     ProjectStatus,
     Auth,
+    OptionProject,
 } from '@/types';
-import { Textarea } from '@/components/ui/textarea';
 
 type Props = {
     projects: Paginated<Project>;
+    parentProjects: OptionProject[];
     divisions: Option[];
     owners: OptionUser[];
     statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
@@ -49,6 +51,7 @@ function dateValue(value?: string | null): string {
 }
 
 function ProjectFormDialog({
+    parentProjects,
     divisions,
     owners,
     statuses,
@@ -57,6 +60,12 @@ function ProjectFormDialog({
     open,
     onOpenChange,
 }: ProjectFormDialogProps) {
+    const availableParentProjects = parentProjects.filter(
+        (parentProject) => parentProject.id !== project?.id,
+    );
+    const [parentId, setParentId] = useState(
+        formSelectValue(project?.parent_id),
+    );
     const [divisionId, setDivisionId] = useState(
         formSelectValue(project?.division_id),
     );
@@ -107,6 +116,25 @@ function ProjectFormDialog({
                                         required
                                     />
                                     <InputError message={errors.title} />
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="parent_id">
+                                        Parent project
+                                    </Label>
+                                    <FormSelect
+                                        id="parent_id"
+                                        name="parent_id"
+                                        value={parentId}
+                                        onValueChange={setParentId}
+                                        placeholder="Tanpa parent project"
+                                        options={availableParentProjects.map(
+                                            (parentProject) => ({
+                                                label: `${parentProject.code} - ${parentProject.title}`,
+                                                value: parentProject.id,
+                                            }),
+                                        )}
+                                    />
+                                    <InputError message={errors.parent_id} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="division_id">Divisi</Label>
@@ -261,6 +289,7 @@ function ProjectFormDialog({
 
 export default function ProjectsIndex({
     projects,
+    parentProjects,
     divisions,
     owners,
     statuses,
@@ -337,6 +366,11 @@ export default function ProjectsIndex({
                                             <div className="text-muted-foreground">
                                                 {project.code} ·{' '}
                                                 {project.priority}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {project.parent
+                                                    ? `Sub-project dari ${project.parent.code}`
+                                                    : `${project.children_count ?? 0} sub-project`}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
@@ -424,6 +458,7 @@ export default function ProjectsIndex({
 
             {canCreate && (
                 <ProjectFormDialog
+                    parentProjects={parentProjects}
                     divisions={divisions}
                     owners={owners}
                     statuses={statuses}
@@ -434,6 +469,7 @@ export default function ProjectsIndex({
             )}
             {canUpdate && editingProject && (
                 <ProjectFormDialog
+                    parentProjects={parentProjects}
                     divisions={divisions}
                     owners={owners}
                     statuses={statuses}

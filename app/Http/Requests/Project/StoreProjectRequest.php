@@ -19,6 +19,7 @@ class StoreProjectRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'max:255', 'unique:projects,code'],
+            'parent_id' => ['nullable', 'uuid', 'exists:projects,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'division_id' => ['required', 'uuid', 'exists:divisions,id'],
