@@ -15,7 +15,7 @@ class FlowActivityController extends Controller
 {
     public function index(): Response
     {
-        return $this->render('flow');
+        return $this->render('flow2');
     }
 
     public function flow2(): Response
@@ -44,20 +44,29 @@ class FlowActivityController extends Controller
                     'division:id,name',
                     'owner:id,name,email',
                     'parent:id,code,title',
-                    'status:id,name,color',
+                    'previousProject:id,code,title,status_id',
+                    'previousProject.status:id,name,slug,color',
+                    'status:id,name,slug,color',
+                    'attachments:id,attachable_id,attachable_type,disk,path,original_name,mime_type,size,created_at',
                     'tasks' => fn ($query) => $query
                         ->whereNull('parent_id')
                         ->with([
                             'division:id,name',
                             'assignee:id,name,email,division_id',
-                            'status:id,name,color',
+                            'previousTask:id,title,status_id',
+                            'previousTask.status:id,name,slug,color',
+                            'status:id,name,slug,color',
+                            'attachments:id,attachable_id,attachable_type,disk,path,original_name,mime_type,size,created_at',
                             'subtasks' => fn ($query) => $query
                                 ->with([
                                     'division:id,name',
                                     'assignee:id,name,email,division_id',
-                                    'status:id,name,color',
+                                    'previousTask:id,title,status_id',
+                                    'previousTask.status:id,name,slug,color',
+                                    'status:id,name,slug,color',
+                                    'attachments:id,attachable_id,attachable_type,disk,path,original_name,mime_type,size,created_at',
                                     'subtasks' => fn ($query) => $query
-                                        ->with(['division:id,name', 'assignee:id,name,email,division_id', 'status:id,name,color'])
+                                        ->with(['division:id,name', 'assignee:id,name,email,division_id', 'previousTask:id,title,status_id', 'previousTask.status:id,name,slug,color', 'status:id,name,slug,color', 'attachments:id,attachable_id,attachable_type,disk,path,original_name,mime_type,size,created_at'])
                                         ->orderBy('due_date')
                                         ->orderBy('title'),
                                 ])

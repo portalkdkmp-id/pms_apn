@@ -38,14 +38,14 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): RedirectResponse
     {
-        $this->projectService->create($request->validated());
+        $this->projectService->create($request->validated(), $request->user());
 
         return back()->with('success', 'Project berhasil dibuat.');
     }
 
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
-        $this->projectService->update($project, $request->validated());
+        $this->projectService->update($project, $request->validated(), $request->user());
 
         return back()->with('success', 'Project berhasil diperbarui.');
     }

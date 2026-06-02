@@ -37,7 +37,7 @@ type Props = {
     divisions: Option[];
     parentTasks: Pick<Task, 'id' | 'project_id' | 'title'>[];
     users: OptionUser[];
-    statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
+    statuses: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'>[];
     priorities: string[];
 };
 
@@ -80,6 +80,12 @@ function TaskFormDialog({
     const [priority, setPriority] = useState(
         formSelectValue(task?.priority ?? 'medium'),
     );
+    const [requiresPrevious, setRequiresPrevious] = useState(
+        task?.requires_previous_task_done ?? false,
+    );
+    const [previousTaskId, setPreviousTaskId] = useState(
+        formSelectValue(task?.previous_task_id),
+    );
     const assignees = uniqueUsers(
         users.filter(
             (user) =>
@@ -105,6 +111,7 @@ function TaskFormDialog({
 
                 <Form
                     {...(task ? update.form(task.id) : store.form())}
+                    encType="multipart/form-data"
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -128,6 +135,9 @@ function TaskFormDialog({
                                                 ),
                                             );
                                             setParentId(formSelectValue());
+                                            setPreviousTaskId(
+                                                formSelectValue(),
+                                            );
                                             setAssigneeId(formSelectValue());
                                         }}
                                         placeholder="Pilih project"
@@ -292,6 +302,65 @@ function TaskFormDialog({
                                         className="min-h-24 rounded-2xl bg-input/50 px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
                                     />
                                     <InputError message={errors.description} />
+                                </div>
+                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="hidden"
+                                            name="requires_previous_task_done"
+                                            value="0"
+                                        />
+                                        <input
+                                            id="requires_previous_task_done"
+                                            name="requires_previous_task_done"
+                                            type="checkbox"
+                                            value="1"
+                                            checked={requiresPrevious}
+                                            onChange={(event) =>
+                                                setRequiresPrevious(
+                                                    event.target.checked,
+                                                )
+                                            }
+                                            className="mt-1 size-4 accent-emerald-600"
+                                        />
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="requires_previous_task_done">
+                                                Task ini menunggu task
+                                                sebelumnya Done
+                                            </Label>
+                                            <FormSelect
+                                                id="previous_task_id"
+                                                name="previous_task_id"
+                                                value={previousTaskId}
+                                                onValueChange={
+                                                    setPreviousTaskId
+                                                }
+                                                placeholder="Pilih previous task"
+                                                disabled={!requiresPrevious}
+                                                options={availableParents.map(
+                                                    (parent) => ({
+                                                        label: parent.title,
+                                                        value: parent.id,
+                                                    }),
+                                                )}
+                                            />
+                                            <InputError
+                                                message={errors.previous_task_id}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="attachments">
+                                        Upload dokumen / file / image
+                                    </Label>
+                                    <Input
+                                        id="attachments"
+                                        name="attachments[]"
+                                        type="file"
+                                        multiple
+                                    />
+                                    <InputError message={errors.attachments} />
                                 </div>
                             </div>
 

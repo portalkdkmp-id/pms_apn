@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'start_date',
     'end_date',
     'expected_deadline',
+    'requires_previous_project_done',
+    'previous_project_id',
     'deleted_by',
 ])]
 class Project extends Model
@@ -35,6 +38,7 @@ class Project extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'expected_deadline' => 'date',
+            'requires_previous_project_done' => 'boolean',
         ];
     }
 
@@ -46,6 +50,11 @@ class Project extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function previousProject(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'previous_project_id');
     }
 
     public function children(): HasMany
@@ -76,5 +85,10 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->latest();
     }
 }

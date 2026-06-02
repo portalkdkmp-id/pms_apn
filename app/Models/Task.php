@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'start_date',
     'due_date',
     'completed_at',
+    'requires_previous_task_done',
+    'previous_task_id',
 ])]
 class Task extends Model
 {
@@ -34,6 +37,7 @@ class Task extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'completed_at' => 'datetime',
+            'requires_previous_task_done' => 'boolean',
         ];
     }
 
@@ -45,6 +49,11 @@ class Task extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Task::class, 'parent_id');
+    }
+
+    public function previousTask(): BelongsTo
+    {
+        return $this->belongsTo(Task::class, 'previous_task_id');
     }
 
     public function division(): BelongsTo
@@ -65,5 +74,10 @@ class Task extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(ProjectStatus::class, 'status_id');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->latest();
     }
 }

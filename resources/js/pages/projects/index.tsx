@@ -76,6 +76,12 @@ function ProjectFormDialog({
     const [priority, setPriority] = useState(
         formSelectValue(project?.priority ?? 'medium'),
     );
+    const [requiresPrevious, setRequiresPrevious] = useState(
+        project?.requires_previous_project_done ?? false,
+    );
+    const [previousProjectId, setPreviousProjectId] = useState(
+        formSelectValue(project?.previous_project_id),
+    );
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,6 +97,7 @@ function ProjectFormDialog({
 
                 <Form
                     {...(project ? update.form(project.id) : store.form())}
+                    encType="multipart/form-data"
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -264,6 +271,67 @@ function ProjectFormDialog({
                                         }
                                     />
                                     <InputError message={errors.description} />
+                                </div>
+                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="hidden"
+                                            name="requires_previous_project_done"
+                                            value="0"
+                                        />
+                                        <input
+                                            id="requires_previous_project_done"
+                                            name="requires_previous_project_done"
+                                            type="checkbox"
+                                            value="1"
+                                            checked={requiresPrevious}
+                                            onChange={(event) =>
+                                                setRequiresPrevious(
+                                                    event.target.checked,
+                                                )
+                                            }
+                                            className="mt-1 size-4 accent-emerald-600"
+                                        />
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="requires_previous_project_done">
+                                                Project ini menunggu project
+                                                sebelumnya Done
+                                            </Label>
+                                            <FormSelect
+                                                id="previous_project_id"
+                                                name="previous_project_id"
+                                                value={previousProjectId}
+                                                onValueChange={
+                                                    setPreviousProjectId
+                                                }
+                                                placeholder="Pilih previous project"
+                                                disabled={!requiresPrevious}
+                                                options={availableParentProjects.map(
+                                                    (parentProject) => ({
+                                                        label: `${parentProject.code} - ${parentProject.title}`,
+                                                        value: parentProject.id,
+                                                    }),
+                                                )}
+                                            />
+                                            <InputError
+                                                message={
+                                                    errors.previous_project_id
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="attachments">
+                                        Upload dokumen / file / image
+                                    </Label>
+                                    <Input
+                                        id="attachments"
+                                        name="attachments[]"
+                                        type="file"
+                                        multiple
+                                    />
+                                    <InputError message={errors.attachments} />
                                 </div>
                             </div>
 

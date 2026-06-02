@@ -11,7 +11,9 @@ import '@xyflow/react/dist/style.css';
 import type { Edge, Node } from '@xyflow/react';
 import {
     Edit,
+    FileText,
     GitBranch,
+    Lock,
     MoreVertical,
     Plus,
     Redo2,
@@ -23,6 +25,7 @@ import {
     ZoomIn,
     ZoomOut,
 } from 'lucide-react';
+import type { DragEvent } from 'react';
 import { useMemo, useState } from 'react';
 import {
     destroy as destroyProject,
@@ -49,7 +52,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    flow2 as flowActivitiesFlow2,
     index as flowActivitiesIndex,
     timeline as flowActivitiesTimeline,
 } from '@/routes/flow-activities';
@@ -80,13 +82,17 @@ type Props = {
     parentTasks: Pick<Task, 'id' | 'project_id' | 'title'>[];
     divisions: Option[];
     users: OptionUser[];
-    statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
+    statuses: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'>[];
     priorities: string[];
 };
 
 type SelectedNode =
     | { type: 'project'; item: FlowProject }
     | { type: 'task'; item: FlowTask };
+
+type ProjectDraft = Partial<FlowProject>;
+type TaskDraft = Partial<FlowTask>;
+type DragNodeKind = 'project' | 'sub_project' | 'task' | 'sub_task';
 
 function dateValue(value?: string | null): string {
     return value?.slice(0, 10) ?? '';
@@ -203,6 +209,9 @@ function ProjectTableLabel({
                         <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase text-emerald-700">
                             <Table2 className="size-3" />
                             {project.parent_id ? 'Sub Project' : 'Project'}
+                            {project.requires_previous_project_done && (
+                                <Lock className="size-3 text-amber-500" />
+                            )}
                         </div>
                         <div className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
                             {project.title}
@@ -242,13 +251,18 @@ function ProjectTableLabel({
                                     {formatDate(task.due_date)}
                                 </span>
                             </span>
-                            <span
-                                className="size-2.5 rounded-full"
-                                style={{
-                                    backgroundColor:
-                                        task.status?.color ?? '#10b981',
-                                }}
-                            />
+                            <span className="flex items-center gap-1">
+                                {task.requires_previous_task_done && (
+                                    <Lock className="size-3 text-amber-500" />
+                                )}
+                                <span
+                                    className="size-2.5 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            task.status?.color ?? '#10b981',
+                                    }}
+                                />
+                            </span>
                         </button>
                     ))
                 )}
@@ -463,10 +477,253 @@ function buildTableFlow(
     return { nodes, edges };
 }
 
+function DetailPanel({
+    selectedNode,
+    projects,
+    canUpdateProject,
+    canUpdateTask,
+    canDeleteProject,
+    canDeleteTask,
+    onEditProject,
+    onEditTask,
+    onDelete,
+}: {
+    selectedNode: SelectedNode | null;
+    projects: FlowProject[];
+    canUpdateProject: boolean;
+    canUpdateTask: boolean;
+    canDeleteProject: boolean;
+    canDeleteTask: boolean;
+    onEditProject: (project: FlowProject) => void;
+    onEditTask: (task: FlowTask) => void;
+    onDelete: () => void;
+}) {
+    if (!selectedNode) {
+        return (
+            <p className="text-sm text-muted-foreground">
+                Pilih project atau baris task untuk melihat detail.
+            </p>
+        );
+    }
+
+    const item = selectedNode.item;
+    const attachments = item.attachments ?? [];
+    const isProject = selectedNode.type === 'project';
+    const subprojects = isProject
+        ? projects.filter((project) => project.parent_id === item.id)
+        : [];
+    const projectTasks = isProject ? (item as FlowProject).tasks : [];
+    const subtasks = isProject ? [] : ((item as FlowTask).subtasks ?? []);
+    const dependencyEnabled = isProject
+        ? (item as FlowProject).requires_previous_project_done
+        : (item as FlowTask).requires_previous_task_done;
+    const dependencyLabel = isProject
+        ? (item as FlowProject).previous_project?.title
+        : (item as FlowTask).previous_task?.title;
+
+    return (
+        <div className="space-y-4 text-sm">
+            <div className="space-y-1">
+                <div className="font-semibold text-slate-800">
+                    {item.title}
+                </div>
+                <div className="text-muted-foreground">
+                    {isProject ? 'Project' : 'Task'} ·{' '}
+                    {item.status?.name ?? '-'}
+                </div>
+            </div>
+
+            <div className="grid gap-2 rounded-md border bg-white p-3 text-xs text-slate-600">
+                {'code' in item && (
+                    <div className="flex justify-between gap-3">
+                        <span>Kode</span>
+                        <span className="font-medium">{item.code}</span>
+                    </div>
+                )}
+                <div className="flex justify-between gap-3">
+                    <span>Divisi</span>
+                    <span className="text-right font-medium">
+                        {item.division?.name ?? '-'}
+                    </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                    <span>{isProject ? 'Owner' : 'PIC'}</span>
+                    <span className="text-right font-medium">
+                        {isProject
+                            ? (item as FlowProject).owner?.name ?? '-'
+                            : (item as FlowTask).assignee?.name ?? '-'}
+                    </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                    <span>Deadline</span>
+                    <span className="font-medium">
+                        {isProject
+                            ? formatDate((item as FlowProject).expected_deadline)
+                            : formatDate((item as FlowTask).due_date)}
+                    </span>
+                </div>
+            </div>
+
+            {dependencyEnabled && (
+                <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                    <Lock className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                        Menunggu {dependencyLabel ?? 'item sebelumnya'} selesai
+                        sebelum bisa Done.
+                    </div>
+                </div>
+            )}
+
+            {item.description && (
+                <div>
+                    <div className="mb-1 text-xs font-medium uppercase text-slate-400">
+                        Deskripsi
+                    </div>
+                    <p className="text-sm text-slate-600">
+                        {item.description}
+                    </p>
+                </div>
+            )}
+
+            <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase text-slate-400">
+                    <FileText className="size-3.5" />
+                    Attachment
+                </div>
+                {attachments.length > 0 ? (
+                    <div className="grid gap-2">
+                        {attachments.map((attachment) => (
+                            <a
+                                key={attachment.id}
+                                href={attachment.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-md border bg-white px-3 py-2 text-xs text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+                            >
+                                {attachment.original_name}
+                            </a>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-xs text-muted-foreground">
+                        Belum ada file.
+                    </div>
+                )}
+            </div>
+
+            {isProject && (
+                <div className="grid gap-3">
+                    <div>
+                        <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                            Subproject
+                        </div>
+                        {subprojects.length > 0 ? (
+                            <div className="grid gap-1">
+                                {subprojects.map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className="rounded-md border bg-white px-3 py-2 text-xs"
+                                    >
+                                        {project.title}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-xs text-muted-foreground">
+                                Tidak ada subproject.
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                            Tasks
+                        </div>
+                        {projectTasks.length > 0 ? (
+                            <div className="grid gap-1">
+                                {projectTasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="rounded-md border bg-white px-3 py-2 text-xs"
+                                    >
+                                        {task.title}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-xs text-muted-foreground">
+                                Tidak ada task.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {!isProject && (
+                <div>
+                    <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                        Subtasks
+                    </div>
+                    {subtasks.length > 0 ? (
+                        <div className="grid gap-1">
+                            {subtasks.map((task) => (
+                                <div
+                                    key={task.id}
+                                    className="rounded-md border bg-white px-3 py-2 text-xs"
+                                >
+                                    {task.title}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-muted-foreground">
+                            Tidak ada subtask.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 border-t pt-3">
+                {isProject && canUpdateProject && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onEditProject(item as FlowProject)}
+                    >
+                        <Edit />
+                        Edit
+                    </Button>
+                )}
+                {!isProject && canUpdateTask && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onEditTask(item as FlowTask)}
+                    >
+                        <Edit />
+                        Edit
+                    </Button>
+                )}
+                {((isProject && canDeleteProject) ||
+                    (!isProject && canDeleteTask)) && (
+                    <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={onDelete}
+                    >
+                        <Trash2 />
+                        Hapus
+                    </Button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function ProjectDialog({
     open,
     onOpenChange,
     project,
+    defaults,
     allProjects,
     divisions,
     users,
@@ -476,26 +733,34 @@ function ProjectDialog({
     open: boolean;
     onOpenChange: (open: boolean) => void;
     project?: FlowProject;
+    defaults?: ProjectDraft;
     allProjects: Props['allProjects'];
     divisions: Option[];
     users: OptionUser[];
-    statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
+    statuses: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'>[];
     priorities: string[];
 }) {
     'use no memo';
 
+    const values = project ?? defaults;
     const [parentId, setParentId] = useState(
-        formSelectValue(project?.parent_id),
+        formSelectValue(values?.parent_id),
     );
     const [divisionId, setDivisionId] = useState(
-        formSelectValue(project?.division_id),
+        formSelectValue(values?.division_id),
     );
-    const [ownerId, setOwnerId] = useState(formSelectValue(project?.owner_id));
+    const [ownerId, setOwnerId] = useState(formSelectValue(values?.owner_id));
     const [statusId, setStatusId] = useState(
-        formSelectValue(project?.status_id),
+        formSelectValue(values?.status_id),
     );
     const [priority, setPriority] = useState(
-        formSelectValue(project?.priority ?? 'medium'),
+        formSelectValue(values?.priority ?? 'medium'),
+    );
+    const [requiresPrevious, setRequiresPrevious] = useState(
+        values?.requires_previous_project_done ?? false,
+    );
+    const [previousProjectId, setPreviousProjectId] = useState(
+        formSelectValue(values?.previous_project_id),
     );
 
     return (
@@ -513,6 +778,7 @@ function ProjectDialog({
                     {...(project
                         ? updateProject.form(project.id)
                         : storeProject.form())}
+                    encType="multipart/form-data"
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -524,7 +790,7 @@ function ProjectDialog({
                                     <Input
                                         id="code"
                                         name="code"
-                                        defaultValue={project?.code}
+                                        defaultValue={values?.code}
                                         required
                                     />
                                     <InputError message={errors.code} />
@@ -534,7 +800,7 @@ function ProjectDialog({
                                     <Input
                                         id="title"
                                         name="title"
-                                        defaultValue={project?.title}
+                                        defaultValue={values?.title}
                                         required
                                     />
                                     <InputError message={errors.title} />
@@ -631,7 +897,7 @@ function ProjectDialog({
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        defaultValue={project?.kpi_target ?? ''}
+                                        defaultValue={values?.kpi_target ?? ''}
                                     />
                                     <InputError message={errors.kpi_target} />
                                 </div>
@@ -644,7 +910,7 @@ function ProjectDialog({
                                         name="expected_deadline"
                                         type="date"
                                         defaultValue={dateValue(
-                                            project?.expected_deadline,
+                                            values?.expected_deadline,
                                         )}
                                     />
                                     <InputError
@@ -659,10 +925,75 @@ function ProjectDialog({
                                         id="description"
                                         name="description"
                                         defaultValue={
-                                            project?.description ?? ''
+                                            values?.description ?? ''
                                         }
                                     />
                                     <InputError message={errors.description} />
+                                </div>
+                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="hidden"
+                                            name="requires_previous_project_done"
+                                            value="0"
+                                        />
+                                        <input
+                                            id="requires_previous_project_done"
+                                            name="requires_previous_project_done"
+                                            type="checkbox"
+                                            value="1"
+                                            checked={requiresPrevious}
+                                            onChange={(event) =>
+                                                setRequiresPrevious(
+                                                    event.target.checked,
+                                                )
+                                            }
+                                            className="mt-1 size-4 accent-emerald-600"
+                                        />
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="requires_previous_project_done">
+                                                Project ini menunggu project
+                                                sebelumnya Done
+                                            </Label>
+                                            <FormSelect
+                                                id="previous_project_id"
+                                                name="previous_project_id"
+                                                value={previousProjectId}
+                                                onValueChange={
+                                                    setPreviousProjectId
+                                                }
+                                                placeholder="Pilih previous project"
+                                                disabled={!requiresPrevious}
+                                                options={allProjects
+                                                    .filter(
+                                                        (item) =>
+                                                            item.id !==
+                                                            project?.id,
+                                                    )
+                                                    .map((item) => ({
+                                                        label: `${item.code} - ${item.title}`,
+                                                        value: item.id,
+                                                    }))}
+                                            />
+                                            <InputError
+                                                message={
+                                                    errors.previous_project_id
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="project_attachments">
+                                        Upload dokumen / file / image
+                                    </Label>
+                                    <Input
+                                        id="project_attachments"
+                                        name="attachments[]"
+                                        type="file"
+                                        multiple
+                                    />
+                                    <InputError message={errors.attachments} />
                                 </div>
                             </div>
                             <DialogFooter>
@@ -687,6 +1018,7 @@ function TaskDialog({
     open,
     onOpenChange,
     task,
+    defaults,
     allProjects,
     parentTasks,
     divisions,
@@ -697,28 +1029,40 @@ function TaskDialog({
     open: boolean;
     onOpenChange: (open: boolean) => void;
     task?: FlowTask;
+    defaults?: TaskDraft;
     allProjects: Props['allProjects'];
     parentTasks: Props['parentTasks'];
     divisions: Option[];
     users: OptionUser[];
-    statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
+    statuses: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'>[];
     priorities: string[];
 }) {
     'use no memo';
 
+    const values = task ?? defaults;
     const [projectId, setProjectId] = useState(
-        formSelectValue(task?.project_id),
+        formSelectValue(values?.project_id),
     );
-    const [parentId, setParentId] = useState(formSelectValue(task?.parent_id));
+    const [parentId, setParentId] = useState(
+        formSelectValue(values?.parent_id),
+    );
     const [divisionId, setDivisionId] = useState(
-        formSelectValue(task?.division_id),
+        formSelectValue(values?.division_id),
     );
     const [assigneeId, setAssigneeId] = useState(
-        formSelectValue(task?.assignee_id),
+        formSelectValue(values?.assignee_id),
     );
-    const [statusId, setStatusId] = useState(formSelectValue(task?.status_id));
+    const [statusId, setStatusId] = useState(
+        formSelectValue(values?.status_id),
+    );
     const [priority, setPriority] = useState(
-        formSelectValue(task?.priority ?? 'medium'),
+        formSelectValue(values?.priority ?? 'medium'),
+    );
+    const [requiresPrevious, setRequiresPrevious] = useState(
+        values?.requires_previous_task_done ?? false,
+    );
+    const [previousTaskId, setPreviousTaskId] = useState(
+        formSelectValue(values?.previous_task_id),
     );
     const assignees = users.filter(
         (user) =>
@@ -738,6 +1082,7 @@ function TaskDialog({
                 </DialogHeader>
                 <Form
                     {...(task ? updateTask.form(task.id) : storeTask.form())}
+                    encType="multipart/form-data"
                     onSuccess={() => onOpenChange(false)}
                     className="grid gap-4"
                 >
@@ -800,7 +1145,7 @@ function TaskDialog({
                                     <Input
                                         id="title"
                                         name="title"
-                                        defaultValue={task?.title}
+                                        defaultValue={values?.title}
                                         required
                                     />
                                     <InputError message={errors.title} />
@@ -876,7 +1221,7 @@ function TaskDialog({
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        defaultValue={task?.kpi_point ?? '0.00'}
+                                        defaultValue={values?.kpi_point ?? '0.00'}
                                         required
                                     />
                                     <InputError message={errors.kpi_point} />
@@ -890,7 +1235,7 @@ function TaskDialog({
                                         name="start_date"
                                         type="date"
                                         defaultValue={dateValue(
-                                            task?.start_date,
+                                            values?.start_date,
                                         )}
                                     />
                                     <InputError message={errors.start_date} />
@@ -901,7 +1246,7 @@ function TaskDialog({
                                         id="due_date"
                                         name="due_date"
                                         type="date"
-                                        defaultValue={dateValue(task?.due_date)}
+                                        defaultValue={dateValue(values?.due_date)}
                                     />
                                     <InputError message={errors.due_date} />
                                 </div>
@@ -912,9 +1257,74 @@ function TaskDialog({
                                     <Textarea
                                         id="description"
                                         name="description"
-                                        defaultValue={task?.description ?? ''}
+                                        defaultValue={values?.description ?? ''}
                                     />
                                     <InputError message={errors.description} />
+                                </div>
+                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="hidden"
+                                            name="requires_previous_task_done"
+                                            value="0"
+                                        />
+                                        <input
+                                            id="requires_previous_task_done"
+                                            name="requires_previous_task_done"
+                                            type="checkbox"
+                                            value="1"
+                                            checked={requiresPrevious}
+                                            onChange={(event) =>
+                                                setRequiresPrevious(
+                                                    event.target.checked,
+                                                )
+                                            }
+                                            className="mt-1 size-4 accent-emerald-600"
+                                        />
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="requires_previous_task_done">
+                                                Task ini menunggu task
+                                                sebelumnya Done
+                                            </Label>
+                                            <FormSelect
+                                                id="previous_task_id"
+                                                name="previous_task_id"
+                                                value={previousTaskId}
+                                                onValueChange={
+                                                    setPreviousTaskId
+                                                }
+                                                placeholder="Pilih previous task"
+                                                disabled={!requiresPrevious}
+                                                options={parentTasks
+                                                    .filter(
+                                                        (item) =>
+                                                            item.project_id ===
+                                                                projectId &&
+                                                            item.id !==
+                                                                task?.id,
+                                                    )
+                                                    .map((item) => ({
+                                                        label: item.title,
+                                                        value: item.id,
+                                                    }))}
+                                            />
+                                            <InputError
+                                                message={errors.previous_task_id}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="task_attachments">
+                                        Upload dokumen / file / image
+                                    </Label>
+                                    <Input
+                                        id="task_attachments"
+                                        name="attachments[]"
+                                        type="file"
+                                        multiple
+                                    />
+                                    <InputError message={errors.attachments} />
                                 </div>
                             </div>
                             <DialogFooter>
@@ -961,6 +1371,10 @@ export default function FlowActivities({
         FlowProject | undefined
     >();
     const [editingTask, setEditingTask] = useState<FlowTask | undefined>();
+    const [projectDefaults, setProjectDefaults] = useState<
+        ProjectDraft | undefined
+    >();
+    const [taskDefaults, setTaskDefaults] = useState<TaskDraft | undefined>();
     const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
     const { nodes, edges } = useMemo(() => buildFlow(projects), [projects]);
     const { nodes: tableNodes, edges: tableEdges } = useMemo(
@@ -997,14 +1411,121 @@ export default function FlowActivities({
         [projects],
     );
 
-    const openProjectDialog = (project?: FlowProject) => {
+    const rootProject = projects.find((project) => !project.parent_id);
+    const selectedProject =
+        selectedNode?.type === 'project' ? selectedNode.item : null;
+    const selectedTask = selectedNode?.type === 'task' ? selectedNode.item : null;
+    const selectedTaskProject = selectedTask
+        ? projects.find((project) => project.id === selectedTask.project_id)
+        : null;
+
+    const openProjectDialog = (
+        project?: FlowProject,
+        defaults?: ProjectDraft,
+    ) => {
         setEditingProject(project);
+        setProjectDefaults(defaults);
         setProjectDialogOpen(true);
     };
 
-    const openTaskDialog = (task?: FlowTask) => {
+    const openTaskDialog = (task?: FlowTask, defaults?: TaskDraft) => {
         setEditingTask(task);
+        setTaskDefaults(defaults);
         setTaskDialogOpen(true);
+    };
+
+    const closeProjectDialog = (open: boolean) => {
+        setProjectDialogOpen(open);
+
+        if (!open) {
+            setEditingProject(undefined);
+            setProjectDefaults(undefined);
+        }
+    };
+
+    const closeTaskDialog = (open: boolean) => {
+        setTaskDialogOpen(open);
+
+        if (!open) {
+            setEditingTask(undefined);
+            setTaskDefaults(undefined);
+        }
+    };
+
+    const handleDragStart = (
+        event: DragEvent<HTMLElement>,
+        kind: DragNodeKind,
+    ) => {
+        event.dataTransfer.setData('application/flow-node', kind);
+        event.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+
+        const kind = event.dataTransfer.getData(
+            'application/flow-node',
+        ) as DragNodeKind;
+
+        if (!kind) {
+            return;
+        }
+
+        const defaultStatusId = statuses[0]?.id;
+        const defaultDivisionId =
+            selectedProject?.division_id ??
+            selectedTask?.division_id ??
+            selectedTaskProject?.division_id ??
+            rootProject?.division_id ??
+            divisions[0]?.id;
+        const defaultOwnerId =
+            selectedProject?.owner_id ?? rootProject?.owner_id ?? users[0]?.id;
+
+        if ((kind === 'project' || kind === 'sub_project') && canCreateProject) {
+            const parentProject = selectedProject ?? rootProject;
+
+            openProjectDialog(undefined, {
+                code: `${kind === 'sub_project' ? 'SUB' : 'PRJ'}-${String(allProjects.length + 1).padStart(3, '0')}`,
+                title:
+                    kind === 'sub_project'
+                        ? 'Sub project baru'
+                        : 'Project baru',
+                parent_id:
+                    kind === 'sub_project' ? parentProject?.id ?? null : null,
+                division_id: defaultDivisionId,
+                owner_id: defaultOwnerId,
+                status_id: defaultStatusId,
+                priority: 'medium',
+                requires_previous_project_done: false,
+                previous_project_id: null,
+            });
+        }
+
+        if ((kind === 'task' || kind === 'sub_task') && canCreateTask) {
+            const project = selectedProject ?? selectedTaskProject ?? rootProject;
+
+            if (!project) {
+                return;
+            }
+
+            openTaskDialog(undefined, {
+                project_id: project.id,
+                parent_id: kind === 'sub_task' ? selectedTask?.id ?? null : null,
+                division_id: selectedTask?.division_id ?? project.division_id,
+                assignee_id: selectedTask?.assignee_id ?? null,
+                status_id: defaultStatusId,
+                title: kind === 'sub_task' ? 'Sub task baru' : 'Task baru',
+                priority: 'medium',
+                kpi_point: '0.00',
+                requires_previous_task_done: false,
+                previous_task_id: null,
+            });
+        }
+    };
+
+    const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
     };
 
     const deleteSelected = () => {
@@ -1034,31 +1555,23 @@ export default function FlowActivities({
     return (
         <>
             <Head title="Flow Aktivitas" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-h-screen flex-col overflow-hidden bg-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-3">
                     <div>
                         <h1 className="text-xl font-semibold">
                             Flow Aktivitas
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Kelola project, sub-project, task, dan sub task
-                            dalam diagram aktivitas.
+                            Drag item dari panel kiri ke canvas untuk membuat
+                            project, sub-project, task, dan sub task.
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Button
                             asChild
-                            variant={mode === 'flow' ? 'default' : 'outline'}
-                        >
-                            <Link href={flowActivitiesIndex()}>
-                                Flow Aktivitas
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
                             variant={mode === 'flow2' ? 'default' : 'outline'}
                         >
-                            <Link href={flowActivitiesFlow2()}>
+                            <Link href={flowActivitiesIndex()}>
                                 Flow Aktivitas 2
                             </Link>
                         </Button>
@@ -1091,7 +1604,7 @@ export default function FlowActivities({
                 </div>
 
                 {mode === 'flow' ? (
-                    <div className="min-h-0 flex-1 overflow-hidden rounded-lg border bg-white shadow-sm">
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
                         <div className="flex h-10 items-center justify-between border-b bg-slate-50 px-3 text-sm">
                             <div className="flex items-center gap-3">
                                 <div className="font-semibold text-slate-700">
@@ -1311,11 +1824,11 @@ export default function FlowActivities({
                                 {projects.length} project
                             </div>
                         </div>
-                        <div className="grid h-[680px] min-h-0 grid-cols-[230px_1fr] xl:grid-cols-[230px_1fr_280px]">
-                            <aside className="hidden border-r bg-white p-3 md:block">
+                        <div className="grid min-h-screen flex-1 grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_320px]">
+                            <aside className="hidden overflow-y-auto border-r bg-white p-3 md:block">
                                 <div className="mb-3 flex items-center justify-between">
                                     <div className="font-medium text-slate-700">
-                                        Projects
+                                        Blocks
                                     </div>
                                     {canCreateProject && (
                                         <Button
@@ -1327,6 +1840,56 @@ export default function FlowActivities({
                                             Add
                                         </Button>
                                     )}
+                                </div>
+                                <div className="mb-4 grid gap-2">
+                                    {[
+                                        {
+                                            kind: 'project' as const,
+                                            label: 'Project',
+                                            description: 'Main project baru',
+                                        },
+                                        {
+                                            kind: 'sub_project' as const,
+                                            label: 'Sub Project',
+                                            description:
+                                                'Child dari project terpilih',
+                                        },
+                                        {
+                                            kind: 'task' as const,
+                                            label: 'Task',
+                                            description:
+                                                'Task pada project terpilih',
+                                        },
+                                        {
+                                            kind: 'sub_task' as const,
+                                            label: 'Sub Task',
+                                            description:
+                                                'Child dari task terpilih',
+                                        },
+                                    ].map((item) => (
+                                        <button
+                                            key={item.kind}
+                                            type="button"
+                                            draggable
+                                            className="grid cursor-grab gap-1 rounded-md border bg-slate-50 px-3 py-2 text-left text-sm transition hover:border-emerald-300 hover:bg-emerald-50 active:cursor-grabbing"
+                                            onDragStart={(event) =>
+                                                handleDragStart(
+                                                    event,
+                                                    item.kind,
+                                                )
+                                            }
+                                        >
+                                            <span className="font-medium text-slate-700">
+                                                {item.label}
+                                            </span>
+                                            <span className="text-xs text-slate-500">
+                                                {item.description}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="mb-2 font-medium text-slate-700">
+                                    Projects
                                 </div>
                                 <div className="relative mb-3">
                                     <Search className="pointer-events-none absolute top-2.5 left-2.5 size-3.5 text-slate-400" />
@@ -1377,6 +1940,8 @@ export default function FlowActivities({
                             </aside>
                             <div
                                 className="relative min-h-0 bg-white"
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
                                 style={{
                                     backgroundImage:
                                         'radial-gradient(circle, rgba(148, 163, 184, 0.26) 1px, transparent 1px)',
@@ -1442,71 +2007,19 @@ export default function FlowActivities({
                                     <GitBranch className="size-4 text-emerald-600" />
                                     Detail
                                 </div>
-                                {selectedNode ? (
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <div className="font-medium">
-                                                {selectedNode.item.title}
-                                            </div>
-                                            <div className="text-muted-foreground">
-                                                {selectedNode.type === 'project'
-                                                    ? 'Project'
-                                                    : 'Task'}
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {selectedNode.type === 'project' &&
-                                                canUpdateProject && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            openProjectDialog(
-                                                                selectedNode.item,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Edit />
-                                                        Edit
-                                                    </Button>
-                                                )}
-                                            {selectedNode.type === 'task' &&
-                                                canUpdateTask && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            openTaskDialog(
-                                                                selectedNode.item,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Edit />
-                                                        Edit
-                                                    </Button>
-                                                )}
-                                            {((selectedNode.type ===
-                                                'project' &&
-                                                canDeleteProject) ||
-                                                (selectedNode.type === 'task' &&
-                                                    canDeleteTask)) && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={deleteSelected}
-                                                >
-                                                    <Trash2 />
-                                                    Hapus
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                        Pilih project atau baris task untuk
-                                        edit/hapus.
-                                    </p>
-                                )}
+                                <DetailPanel
+                                    selectedNode={selectedNode}
+                                    projects={projects}
+                                    canUpdateProject={canUpdateProject}
+                                    canUpdateTask={canUpdateTask}
+                                    canDeleteProject={canDeleteProject}
+                                    canDeleteTask={canDeleteTask}
+                                    onEditProject={(project) =>
+                                        openProjectDialog(project)
+                                    }
+                                    onEditTask={(task) => openTaskDialog(task)}
+                                    onDelete={deleteSelected}
+                                />
                             </aside>
                         </div>
                     </div>
@@ -1540,10 +2053,11 @@ export default function FlowActivities({
             </div>
 
             <ProjectDialog
-                key={editingProject?.id ?? 'create-project'}
+                key={editingProject?.id ?? projectDefaults?.parent_id ?? 'create-project'}
                 open={projectDialogOpen}
-                onOpenChange={setProjectDialogOpen}
+                onOpenChange={closeProjectDialog}
                 project={editingProject}
+                defaults={projectDefaults}
                 allProjects={allProjects}
                 divisions={divisions}
                 users={users}
@@ -1551,10 +2065,11 @@ export default function FlowActivities({
                 priorities={priorities}
             />
             <TaskDialog
-                key={editingTask?.id ?? 'create-task'}
+                key={editingTask?.id ?? taskDefaults?.parent_id ?? taskDefaults?.project_id ?? 'create-task'}
                 open={taskDialogOpen}
-                onOpenChange={setTaskDialogOpen}
+                onOpenChange={closeTaskDialog}
                 task={editingTask}
+                defaults={taskDefaults}
                 allProjects={allProjects}
                 parentTasks={parentTasks}
                 divisions={divisions}
