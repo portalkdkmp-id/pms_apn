@@ -6,6 +6,8 @@ import {
     MiniMap,
     ReactFlow,
     ReactFlowProvider,
+    useEdgesState,
+    useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import type { Edge, Node } from '@xyflow/react';
@@ -26,7 +28,7 @@ import {
     ZoomOut,
 } from 'lucide-react';
 import type { DragEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     destroy as destroyProject,
     store as storeProject,
@@ -51,6 +53,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { dashboard } from '@/routes';
 import {
     index as flowActivitiesIndex,
     timeline as flowActivitiesTimeline,
@@ -89,6 +92,8 @@ type Props = {
 type SelectedNode =
     | { type: 'project'; item: FlowProject }
     | { type: 'task'; item: FlowTask };
+
+type AddSource = SelectedNode;
 
 type ProjectDraft = Partial<FlowProject>;
 type TaskDraft = Partial<FlowTask>;
@@ -155,6 +160,20 @@ function flattenTasksWithDepth(
     ]);
 }
 
+function isProjectBlocked(project: FlowProject): boolean {
+    return (
+        project.requires_previous_project_done &&
+        project.previous_project?.status?.slug !== 'done'
+    );
+}
+
+function isTaskBlocked(task: FlowTask): boolean {
+    return (
+        task.requires_previous_task_done &&
+        task.previous_task?.status?.slug !== 'done'
+    );
+}
+
 function FlowNodeLabel({
     title,
     meta,
@@ -190,34 +209,61 @@ function FlowNodeLabel({
 function ProjectTableLabel({
     project,
     onSelectTask,
+    onAddProject,
+    onAddTask,
 }: {
     project: FlowProject;
     onSelectTask: (task: FlowTask) => void;
+    onAddProject: (project: FlowProject) => void;
+    onAddTask: (task: FlowTask) => void;
 }) {
     const tasks = flattenTasksWithDepth(project.tasks);
     const accentColor = project.status?.color ?? '#10b981';
+    const projectBlocked = isProjectBlocked(project);
 
     return (
-        <div className="w-72 overflow-hidden rounded-md border border-slate-200 bg-white text-left text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+        <div
+            className={`w-72 overflow-hidden rounded-md border text-left text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.12)] ${
+                projectBlocked
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-slate-200 bg-white'
+            }`}
+        >
             <div
                 className="h-1.5"
                 style={{ backgroundColor: accentColor }}
             />
-            <div className="border-b border-slate-100 bg-slate-50/90 px-3 py-2.5">
+            <div
+                className={`border-b px-3 py-2.5 ${
+                    projectBlocked
+                        ? 'border-red-100 bg-red-50'
+                        : 'border-slate-100 bg-slate-50/90'
+                }`}
+            >
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                         <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase text-emerald-700">
                             <Table2 className="size-3" />
                             {project.parent_id ? 'Sub Project' : 'Project'}
-                            {project.requires_previous_project_done && (
-                                <Lock className="size-3 text-amber-500" />
+                            {projectBlocked && (
+                                <Lock className="size-3 text-red-500" />
                             )}
                         </div>
                         <div className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
                             {project.title}
                         </div>
                     </div>
-                    <MoreVertical className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                    <button
+                        type="button"
+                        className="nodrag nopan mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border bg-white text-emerald-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onAddProject(project);
+                        }}
+                        onMouseDown={(event) => event.stopPropagation()}
+                    >
+                        <Plus className="size-4" />
+                    </button>
                 </div>
                 <div className="mt-1 truncate text-[11px] text-slate-500">
                     {project.code} · {project.division?.name ?? '-'}
@@ -230,14 +276,31 @@ function ProjectTableLabel({
                     </div>
                 ) : (
                     tasks.map(({ task, depth }) => (
-                        <button
+                        <div
                             key={task.id}
-                            type="button"
+                            className={
+                                isTaskBlocked(task)
+                                    ? 'bg-red-50/90'
+                                    : undefined
+                            }
+                        >
+                        <div
+                            role="button"
+                            tabIndex={0}
                             className="nodrag nopan grid w-full grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-left text-xs transition hover:bg-emerald-50/70"
                             style={{ paddingLeft: `${12 + depth * 18}px` }}
                             onClick={(event) => {
                                 event.stopPropagation();
                                 onSelectTask(task);
+                            }}
+                            onKeyDown={(event) => {
+                                if (
+                                    event.key === 'Enter' ||
+                                    event.key === ' '
+                                ) {
+                                    event.preventDefault();
+                                    onSelectTask(task);
+                                }
                             }}
                             onMouseDown={(event) => event.stopPropagation()}
                         >
@@ -253,7 +316,13 @@ function ProjectTableLabel({
                             </span>
                             <span className="flex items-center gap-1">
                                 {task.requires_previous_task_done && (
-                                    <Lock className="size-3 text-amber-500" />
+                                    <Lock
+                                        className={`size-3 ${
+                                            isTaskBlocked(task)
+                                                ? 'text-red-500'
+                                                : 'text-amber-500'
+                                        }`}
+                                    />
                                 )}
                                 <span
                                     className="size-2.5 rounded-full"
@@ -262,8 +331,32 @@ function ProjectTableLabel({
                                             task.status?.color ?? '#10b981',
                                     }}
                                 />
+                                <span
+                                    role="button"
+                                    tabIndex={0}
+                                    className="ml-1 inline-flex size-6 items-center justify-center rounded border bg-white text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        onAddTask(task);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === 'Enter' ||
+                                            event.key === ' '
+                                        ) {
+                                            event.preventDefault();
+                                            onAddTask(task);
+                                        }
+                                    }}
+                                    onMouseDown={(event) =>
+                                        event.stopPropagation()
+                                    }
+                                >
+                                    <Plus className="size-3.5" />
+                                </span>
                             </span>
-                        </button>
+                        </div>
+                        </div>
                     ))
                 )}
             </div>
@@ -400,6 +493,8 @@ function buildFlow(projects: FlowProject[]): {
 function buildTableFlow(
     projects: FlowProject[],
     onSelectTask: (task: FlowTask) => void,
+    onAddProject: (project: FlowProject) => void,
+    onAddTask: (task: FlowTask) => void,
 ): {
     nodes: Node[];
     edges: Edge[];
@@ -436,6 +531,8 @@ function buildTableFlow(
                     <ProjectTableLabel
                         project={project}
                         onSelectTask={onSelectTask}
+                        onAddProject={onAddProject}
+                        onAddTask={onAddTask}
                     />
                 ),
             },
@@ -716,6 +813,77 @@ function DetailPanel({
                 )}
             </div>
         </div>
+    );
+}
+
+function AddChildDialog({
+    source,
+    open,
+    onOpenChange,
+    onAddTask,
+    onAddSubProject,
+    onAddSubTask,
+}: {
+    source: AddSource | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onAddTask: (project: FlowProject) => void;
+    onAddSubProject: (project: FlowProject) => void;
+    onAddSubTask: (task: FlowTask) => void;
+}) {
+    const isProject = source?.type === 'project';
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Tambah aktivitas</DialogTitle>
+                    <DialogDescription>
+                        {source
+                            ? `Parent: ${source.item.title}`
+                            : 'Pilih parent dari diagram.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-2">
+                    {isProject && (
+                        <>
+                            <Button
+                                type="button"
+                                onClick={() =>
+                                    onAddTask(source.item as FlowProject)
+                                }
+                            >
+                                <Plus />
+                                Tambah task
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    onAddSubProject(
+                                        source.item as FlowProject,
+                                    )
+                                }
+                            >
+                                <Plus />
+                                Tambah sub - Project
+                            </Button>
+                        </>
+                    )}
+                    {source?.type === 'task' && (
+                        <Button
+                            type="button"
+                            onClick={() =>
+                                onAddSubTask(source.item as FlowTask)
+                            }
+                        >
+                            <Plus />
+                            Tambah sub task
+                        </Button>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -1376,14 +1544,28 @@ export default function FlowActivities({
     >();
     const [taskDefaults, setTaskDefaults] = useState<TaskDraft | undefined>();
     const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
+    const [addSource, setAddSource] = useState<AddSource | null>(null);
     const { nodes, edges } = useMemo(() => buildFlow(projects), [projects]);
-    const { nodes: tableNodes, edges: tableEdges } = useMemo(
+    const tableFlow = useMemo(
         () =>
-            buildTableFlow(projects, (task) =>
-                setSelectedNode({ type: 'task', item: task }),
+            buildTableFlow(
+                projects,
+                (task) => setSelectedNode({ type: 'task', item: task }),
+                (project) => {
+                    setSelectedNode({ type: 'project', item: project });
+                    setAddSource({ type: 'project', item: project });
+                },
+                (task) => {
+                    setSelectedNode({ type: 'task', item: task });
+                    setAddSource({ type: 'task', item: task });
+                },
             ),
         [projects],
     );
+    const [tableNodes, setTableNodes, onTableNodesChange] =
+        useNodesState<Node>([]);
+    const [tableEdges, setTableEdges, onTableEdgesChange] =
+        useEdgesState<Edge>([]);
     const timelineItems = useMemo(
         () =>
             projects
@@ -1419,6 +1601,11 @@ export default function FlowActivities({
         ? projects.find((project) => project.id === selectedTask.project_id)
         : null;
 
+    useEffect(() => {
+        setTableNodes(tableFlow.nodes);
+        setTableEdges(tableFlow.edges);
+    }, [setTableEdges, setTableNodes, tableFlow]);
+
     const openProjectDialog = (
         project?: FlowProject,
         defaults?: ProjectDraft,
@@ -1452,6 +1639,69 @@ export default function FlowActivities({
         }
     };
 
+    const projectDefaultsFor = (
+        parentProject: FlowProject | null,
+        kind: 'project' | 'sub_project',
+    ): ProjectDraft => ({
+        code: `${kind === 'sub_project' ? 'SUB' : 'PRJ'}-${String(allProjects.length + 1).padStart(3, '0')}`,
+        title: kind === 'sub_project' ? 'Sub project baru' : 'Project baru',
+        parent_id: kind === 'sub_project' ? parentProject?.id ?? null : null,
+        division_id:
+            parentProject?.division_id ??
+            rootProject?.division_id ??
+            divisions[0]?.id,
+        owner_id: parentProject?.owner_id ?? rootProject?.owner_id ?? users[0]?.id,
+        status_id: statuses[0]?.id,
+        priority: 'medium',
+        requires_previous_project_done: false,
+        previous_project_id: null,
+    });
+
+    const taskDefaultsForProject = (project: FlowProject): TaskDraft => ({
+        project_id: project.id,
+        parent_id: null,
+        division_id: project.division_id,
+        assignee_id: null,
+        status_id: statuses[0]?.id,
+        title: 'Task baru',
+        priority: 'medium',
+        kpi_point: '0.00',
+        requires_previous_task_done: false,
+        previous_task_id: null,
+    });
+
+    const taskDefaultsForTask = (task: FlowTask): TaskDraft => {
+        const project = projects.find((item) => item.id === task.project_id);
+
+        return {
+            project_id: task.project_id,
+            parent_id: task.id,
+            division_id: task.division_id ?? project?.division_id,
+            assignee_id: task.assignee_id,
+            status_id: statuses[0]?.id,
+            title: 'Sub task baru',
+            priority: 'medium',
+            kpi_point: '0.00',
+            requires_previous_task_done: false,
+            previous_task_id: null,
+        };
+    };
+
+    const openSubProjectFrom = (project: FlowProject) => {
+        setAddSource(null);
+        openProjectDialog(undefined, projectDefaultsFor(project, 'sub_project'));
+    };
+
+    const openTaskFromProject = (project: FlowProject) => {
+        setAddSource(null);
+        openTaskDialog(undefined, taskDefaultsForProject(project));
+    };
+
+    const openSubTaskFrom = (task: FlowTask) => {
+        setAddSource(null);
+        openTaskDialog(undefined, taskDefaultsForTask(task));
+    };
+
     const handleDragStart = (
         event: DragEvent<HTMLElement>,
         kind: DragNodeKind,
@@ -1471,34 +1721,12 @@ export default function FlowActivities({
             return;
         }
 
-        const defaultStatusId = statuses[0]?.id;
-        const defaultDivisionId =
-            selectedProject?.division_id ??
-            selectedTask?.division_id ??
-            selectedTaskProject?.division_id ??
-            rootProject?.division_id ??
-            divisions[0]?.id;
-        const defaultOwnerId =
-            selectedProject?.owner_id ?? rootProject?.owner_id ?? users[0]?.id;
-
         if ((kind === 'project' || kind === 'sub_project') && canCreateProject) {
             const parentProject = selectedProject ?? rootProject;
-
-            openProjectDialog(undefined, {
-                code: `${kind === 'sub_project' ? 'SUB' : 'PRJ'}-${String(allProjects.length + 1).padStart(3, '0')}`,
-                title:
-                    kind === 'sub_project'
-                        ? 'Sub project baru'
-                        : 'Project baru',
-                parent_id:
-                    kind === 'sub_project' ? parentProject?.id ?? null : null,
-                division_id: defaultDivisionId,
-                owner_id: defaultOwnerId,
-                status_id: defaultStatusId,
-                priority: 'medium',
-                requires_previous_project_done: false,
-                previous_project_id: null,
-            });
+            openProjectDialog(
+                undefined,
+                projectDefaultsFor(parentProject ?? null, kind),
+            );
         }
 
         if ((kind === 'task' || kind === 'sub_task') && canCreateTask) {
@@ -1508,18 +1736,13 @@ export default function FlowActivities({
                 return;
             }
 
-            openTaskDialog(undefined, {
-                project_id: project.id,
-                parent_id: kind === 'sub_task' ? selectedTask?.id ?? null : null,
-                division_id: selectedTask?.division_id ?? project.division_id,
-                assignee_id: selectedTask?.assignee_id ?? null,
-                status_id: defaultStatusId,
-                title: kind === 'sub_task' ? 'Sub task baru' : 'Task baru',
-                priority: 'medium',
-                kpi_point: '0.00',
-                requires_previous_task_done: false,
-                previous_task_id: null,
-            });
+            if (kind === 'sub_task' && selectedTask) {
+                openSubTaskFrom(selectedTask);
+
+                return;
+            }
+
+            openTaskDialog(undefined, taskDefaultsForProject(project));
         }
     };
 
@@ -1567,6 +1790,11 @@ export default function FlowActivities({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline">
+                            <Link href={dashboard()}>
+                                Kembali ke Dashboard
+                            </Link>
+                        </Button>
                         <Button
                             asChild
                             variant={mode === 'flow2' ? 'default' : 'outline'}
@@ -1824,6 +2052,41 @@ export default function FlowActivities({
                                 {projects.length} project
                             </div>
                         </div>
+                        <div className="flex flex-wrap items-center gap-3 border-b bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                            <div className="font-medium text-slate-700">
+                                Legend
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-3 rounded-sm bg-emerald-500" />
+                                Running / normal
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-3 rounded-sm border border-red-300 bg-red-100" />
+                                Blocked dependency
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <Lock className="size-3.5 text-amber-500" />
+                                Menunggu predecessor
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="h-px w-6 bg-slate-300" />
+                                Relasi parent-child
+                            </div>
+                            {statuses.slice(0, 5).map((status) => (
+                                <div
+                                    key={status.id}
+                                    className="flex items-center gap-1.5"
+                                >
+                                    <span
+                                        className="size-2.5 rounded-full"
+                                        style={{
+                                            backgroundColor: status.color,
+                                        }}
+                                    />
+                                    {status.name}
+                                </div>
+                            ))}
+                        </div>
                         <div className="grid min-h-screen flex-1 grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_320px]">
                             <aside className="hidden overflow-y-auto border-r bg-white p-3 md:block">
                                 <div className="mb-3 flex items-center justify-between">
@@ -1952,8 +2215,12 @@ export default function FlowActivities({
                                     <ReactFlow
                                         nodes={tableNodes}
                                         edges={tableEdges}
+                                        onNodesChange={onTableNodesChange}
+                                        onEdgesChange={onTableEdgesChange}
                                         fitView
                                         minZoom={0.35}
+                                        nodesDraggable
+                                        nodesConnectable={false}
                                         proOptions={{ hideAttribution: true }}
                                         onNodeClick={(_, node) => {
                                             const [type, id] =
@@ -2052,6 +2319,18 @@ export default function FlowActivities({
                 )}
             </div>
 
+            <AddChildDialog
+                source={addSource}
+                open={addSource !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setAddSource(null);
+                    }
+                }}
+                onAddTask={openTaskFromProject}
+                onAddSubProject={openSubProjectFrom}
+                onAddSubTask={openSubTaskFrom}
+            />
             <ProjectDialog
                 key={editingProject?.id ?? projectDefaults?.parent_id ?? 'create-project'}
                 open={projectDialogOpen}

@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
+    ChartNoAxesGantt,
     GitBranch,
     LayoutGrid,
     ListTodo,
@@ -23,6 +24,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as divisionsIndex } from '@/routes/divisions';
 import { index as flowActivitiesIndex } from '@/routes/flow-activities';
+import { index as ganttChartIndex } from '@/routes/gantt-chart';
 import { index as projectStatusesIndex } from '@/routes/project-statuses';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as rolesIndex } from '@/routes/roles';
@@ -59,6 +61,12 @@ const mainNavItems: PermissionNavItem[] = [
         title: 'Flow Aktivitas',
         href: flowActivitiesIndex(),
         icon: GitBranch,
+        permission: 'task.view',
+    },
+    {
+        title: 'Gantt Chart',
+        href: ganttChartIndex(),
+        icon: ChartNoAxesGantt,
         permission: 'task.view',
     },
     {
