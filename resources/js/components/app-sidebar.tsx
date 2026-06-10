@@ -16,6 +16,7 @@ import { NavMain } from '@/components/nav-main';
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -32,6 +33,7 @@ import { index as tasksIndex } from '@/routes/tasks';
 import { index as teamsIndex } from '@/routes/teams';
 import { index as usersIndex } from '@/routes/users';
 import type { Auth, NavItem } from '@/types';
+import { NavUser } from './nav-user';
 
 type PermissionNavItem = NavItem & {
     permission?: string;
@@ -114,11 +116,19 @@ export function AppSidebar() {
     });
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+        <Sidebar
+            collapsible="icon"
+            variant="inset"
+            className="group-data-[variant=inset]:p-3"
+        >
+            <SidebarHeader className="px-3 pt-3 pb-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
+                            className="h-14 rounded-2xl bg-white text-sidebar-foreground shadow-sm ring-1 ring-sidebar-border hover:bg-white"
+                        >
                             <Link href={dashboard()} prefetch>
                                 <AppLogo />
                             </Link>
@@ -127,14 +137,13 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className="px-3 pb-4">
                 <NavMain items={visibleMainNavItems} />
             </SidebarContent>
 
-            {/* <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+            <SidebarFooter className="px-3 pb-3">
                 <NavUser />
-            </SidebarFooter> */}
+            </SidebarFooter>
         </Sidebar>
     );
 }
