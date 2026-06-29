@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\FlowActivityController;
 use App\Http\Controllers\GanttChartController;
@@ -27,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('divisions', DivisionController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('roles', RoleController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('project-statuses', ProjectStatusController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('changelogs/{changelog}/publish', [ChangelogController::class, 'publish'])->name('changelogs.publish');
+    Route::resource('changelogs', ChangelogController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('projects', ProjectController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('teams', TeamController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('tasks/pending', [TaskController::class, 'pending'])->name('tasks.pending');

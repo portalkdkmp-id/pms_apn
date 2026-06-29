@@ -4,6 +4,7 @@ import {
     ChartNoAxesGantt,
     ClipboardCheck,
     GitBranch,
+    History,
     LayoutGrid,
     ListTodo,
     PanelsTopLeft,
@@ -24,6 +25,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as changelogsIndex } from '@/routes/changelogs';
 import { index as divisionsIndex } from '@/routes/divisions';
 import { index as flowActivitiesIndex } from '@/routes/flow-activities';
 import { index as ganttChartIndex } from '@/routes/gantt-chart';
@@ -51,6 +53,12 @@ const navGroups: Array<{ title: string; items: PermissionNavItem[] }> = [
                 href: dashboard(),
                 icon: LayoutGrid,
                 permission: 'dashboard.view',
+            },
+            {
+                title: 'Changelog',
+                href: changelogsIndex(),
+                icon: History,
+                permission: 'changelog.view',
             },
         ],
     },

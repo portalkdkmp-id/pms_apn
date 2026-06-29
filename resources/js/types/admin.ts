@@ -54,6 +54,21 @@ export type ProjectStatus = {
     is_active: boolean;
 };
 
+export type Changelog = {
+    id: number;
+    version: string;
+    title: string;
+    type: 'major' | 'minor' | 'patch' | 'hotfix' | 'beta';
+    summary: string | null;
+    changes: string[];
+    is_published: boolean;
+    released_at: string | null;
+    created_by: string | null;
+    creator?: OptionUser | null;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Attachment = {
     id: string;
     original_name: string;
