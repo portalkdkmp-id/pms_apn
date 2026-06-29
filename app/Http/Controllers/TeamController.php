@@ -22,6 +22,9 @@ class TeamController extends Controller
 
         return Inertia::render('teams/index', [
             'teams' => $this->teamService->paginate(),
+            'teamOptions' => Team::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
             'projects' => Project::query()
                 ->orderBy('title')
                 ->get(['id', 'code', 'title']),

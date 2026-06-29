@@ -27,7 +27,7 @@ class ProjectService
                 'parent:id,code,title,division_id',
                 'previousProject:id,code,title,status_id',
                 'previousProject.status:id,name,slug,color',
-                'status:id,name,color',
+                'status:id,name,slug,color',
                 'attachments:id,attachable_id,attachable_type,disk,path,original_name,mime_type,size,created_at',
             ])
             ->withCount('children')
@@ -115,7 +115,9 @@ class ProjectService
             }
 
             if ($canViewAssigned) {
-                $query->orWhere('owner_id', $user->id);
+                $query
+                    ->orWhere('owner_id', $user->id)
+                    ->orWhereHas('tasks', fn (Builder $query) => $query->where('assignee_id', $user->id));
             }
         });
     }

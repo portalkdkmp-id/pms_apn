@@ -22,7 +22,7 @@ class UpdateTeamRequest extends FormRequest
         $team = $this->route('team');
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('teams', 'name')->ignore($team)],
             'slug' => ['required', 'string', 'max:255', 'alpha_dash:ascii', Rule::unique('teams', 'slug')->ignore($team)],
             'description' => ['nullable', 'string'],
             'project_id' => ['required', 'uuid', 'exists:projects,id'],

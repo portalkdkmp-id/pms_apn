@@ -26,12 +26,12 @@ class ProjectController extends Controller
         return Inertia::render('projects/index', [
             'projects' => $this->projectService->paginateFor($user),
             'parentProjects' => $this->projectService->parentOptionsFor($user),
-            'divisions' => Division::query()->orderBy('name')->get(['id', 'name']),
-            'owners' => User::query()->orderBy('name')->get(['id', 'name', 'email', 'division_id']),
+            'divisions' => $this->divisionOptionsFor($user),
+            'owners' => $this->ownerOptionsFor($user),
             'statuses' => ProjectStatus::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['id', 'name', 'color']),
+                ->get(['id', 'name', 'slug', 'color']),
             'priorities' => ['low', 'medium', 'high', 'critical'],
         ]);
     }
@@ -59,5 +59,31 @@ class ProjectController extends Controller
         $this->projectService->delete($project, $user);
 
         return back()->with('success', 'Project berhasil dihapus.');
+    }
+
+    private function divisionOptionsFor(User $user)
+    {
+        $query = Division::query()->orderBy('name');
+
+        if (! $user->can('project.view_all') && $user->can('project.view_division') && $user->division_id !== null) {
+            $query->whereKey($user->division_id);
+        }
+
+        return $query->get(['id', 'name']);
+    }
+
+    private function ownerOptionsFor(User $user)
+    {
+        $query = User::query()->orderBy('name');
+
+        if (! $user->can('project.view_all') && $user->can('project.view_division') && $user->division_id !== null) {
+            $query->where('division_id', $user->division_id);
+        }
+
+        if (! $user->can('project.view_all') && ! $user->can('project.view_division') && $user->can('project.view_assigned')) {
+            $query->whereKey($user->id);
+        }
+
+        return $query->get(['id', 'name', 'email', 'division_id']);
     }
 }

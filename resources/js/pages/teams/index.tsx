@@ -1,6 +1,6 @@
 import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     destroy,
     index,
@@ -26,10 +26,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { slugify } from '@/lib/slug';
 import type { Auth, OptionProject, OptionUser, Paginated, Team } from '@/types';
 
 type Props = {
     teams: Paginated<Team>;
+    teamOptions: Pick<Team, 'id' | 'name' | 'slug'>[];
     projects: OptionProject[];
     users: OptionUser[];
 };
@@ -37,6 +39,7 @@ type Props = {
 type TeamFormDialogProps = {
     projects: OptionProject[];
     users: OptionUser[];
+    teamOptions: Pick<Team, 'id' | 'name' | 'slug'>[];
     team?: Team;
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -45,15 +48,33 @@ type TeamFormDialogProps = {
 function TeamFormDialog({
     projects,
     users,
+    teamOptions,
     team,
     open,
     onOpenChange,
 }: TeamFormDialogProps) {
     const selectedMemberIds = team?.members.map((member) => member.id) ?? [];
+    const [name, setName] = useState(team?.name ?? '');
     const [projectId, setProjectId] = useState(
         formSelectValue(team?.project_id),
     );
     const [leaderId, setLeaderId] = useState(formSelectValue(team?.leader_id));
+    const slug = slugify(name);
+    const duplicateName = teamOptions.some(
+        (option) =>
+            option.id !== team?.id &&
+            option.name.trim().toLowerCase() === name.trim().toLowerCase(),
+    );
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        setName(team?.name ?? '');
+        setProjectId(formSelectValue(team?.project_id));
+        setLeaderId(formSelectValue(team?.leader_id));
+    }, [open, team]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,17 +110,27 @@ function TeamFormDialog({
                                     <Input
                                         id="name"
                                         name="name"
-                                        defaultValue={team?.name}
+                                        value={name}
+                                        onChange={(event) =>
+                                            setName(event.target.value)
+                                        }
                                         required
                                     />
-                                    <InputError message={errors.name} />
+                                    <InputError
+                                        message={
+                                            duplicateName
+                                                ? 'Nama team sudah ada di database.'
+                                                : errors.name
+                                        }
+                                    />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="slug">Slug</Label>
                                     <Input
                                         id="slug"
                                         name="slug"
-                                        defaultValue={team?.slug}
+                                        value={slug}
+                                        readOnly
                                         required
                                     />
                                     <InputError message={errors.slug} />
@@ -179,7 +210,7 @@ function TeamFormDialog({
                                 >
                                     Batal
                                 </Button>
-                                <Button disabled={processing}>
+                                <Button disabled={processing || duplicateName}>
                                     {team ? 'Simpan' : 'Tambah'}
                                 </Button>
                             </DialogFooter>
@@ -191,7 +222,12 @@ function TeamFormDialog({
     );
 }
 
-export default function TeamsIndex({ teams, projects, users }: Props) {
+export default function TeamsIndex({
+    teams,
+    teamOptions,
+    projects,
+    users,
+}: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const permissions = new Set(auth.permissions);
     const canCreate = permissions.has('team.create');
@@ -332,6 +368,7 @@ export default function TeamsIndex({ teams, projects, users }: Props) {
                 <TeamFormDialog
                     projects={projects}
                     users={users}
+                    teamOptions={teamOptions}
                     open={isCreateOpen}
                     onOpenChange={setIsCreateOpen}
                 />
@@ -340,6 +377,7 @@ export default function TeamsIndex({ teams, projects, users }: Props) {
                 <TeamFormDialog
                     projects={projects}
                     users={users}
+                    teamOptions={teamOptions}
                     team={editingTeam}
                     open={!!editingTeam}
                     onOpenChange={(open) => !open && setEditingTeam(null)}

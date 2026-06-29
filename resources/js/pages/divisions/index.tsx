@@ -1,6 +1,6 @@
 import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     destroy,
     index,
@@ -26,15 +26,18 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { slugify } from '@/lib/slug';
 import type { Auth, Division, OptionUser, Paginated } from '@/types';
 
 type Props = {
     divisions: Paginated<Division>;
+    divisionOptions: Pick<Division, 'id' | 'name' | 'slug'>[];
     users: OptionUser[];
 };
 
 type DivisionFormDialogProps = {
     users: OptionUser[];
+    divisionOptions: Pick<Division, 'id' | 'name' | 'slug'>[];
     division?: Division;
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -42,24 +45,39 @@ type DivisionFormDialogProps = {
 
 function DivisionFormDialog({
     users,
+    divisionOptions,
     division,
     open,
     onOpenChange,
 }: DivisionFormDialogProps) {
+    const [name, setName] = useState(division?.name ?? '');
     const [managerId, setManagerId] = useState(
         formSelectValue(division?.manager_id),
     );
+    const slug = slugify(name);
+    const duplicateName = divisionOptions.some(
+        (option) =>
+            option.id !== division?.id &&
+            option.name.trim().toLowerCase() === name.trim().toLowerCase(),
+    );
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        setName(division?.name ?? '');
+        setManagerId(formSelectValue(division?.manager_id));
+    }, [division, open]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {division ? 'Edit division' : 'Tambah division'}
+                        {division ? 'Edit Divisi' : 'Tambah Divisi'}
                     </DialogTitle>
-                    <DialogDescription>
-                        Kelola master division, slug, dan manager.
-                    </DialogDescription>
+                    <DialogDescription>Kelola master Divisi.</DialogDescription>
                 </DialogHeader>
 
                 <Form
@@ -74,17 +92,27 @@ function DivisionFormDialog({
                                 <Input
                                     id="name"
                                     name="name"
-                                    defaultValue={division?.name}
+                                    value={name}
+                                    onChange={(event) =>
+                                        setName(event.target.value)
+                                    }
                                     required
                                 />
-                                <InputError message={errors.name} />
+                                <InputError
+                                    message={
+                                        duplicateName
+                                            ? 'Nama divisi sudah ada di database.'
+                                            : errors.name
+                                    }
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="slug">Slug</Label>
                                 <Input
                                     id="slug"
                                     name="slug"
-                                    defaultValue={division?.slug}
+                                    value={slug}
+                                    readOnly
                                     required
                                 />
                                 <InputError message={errors.slug} />
@@ -121,7 +149,7 @@ function DivisionFormDialog({
                                 >
                                     Batal
                                 </Button>
-                                <Button disabled={processing}>
+                                <Button disabled={processing || duplicateName}>
                                     {division ? 'Simpan' : 'Tambah'}
                                 </Button>
                             </DialogFooter>
@@ -133,7 +161,11 @@ function DivisionFormDialog({
     );
 }
 
-export default function DivisionsIndex({ divisions, users }: Props) {
+export default function DivisionsIndex({
+    divisions,
+    divisionOptions,
+    users,
+}: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const permissions = new Set(auth.permissions);
     const canCreate = permissions.has('division.create');
@@ -267,6 +299,7 @@ export default function DivisionsIndex({ divisions, users }: Props) {
             {canCreate && (
                 <DivisionFormDialog
                     users={users}
+                    divisionOptions={divisionOptions}
                     open={isCreateOpen}
                     onOpenChange={setIsCreateOpen}
                 />
@@ -274,6 +307,7 @@ export default function DivisionsIndex({ divisions, users }: Props) {
             {canUpdate && editingDivision && (
                 <DivisionFormDialog
                     users={users}
+                    divisionOptions={divisionOptions}
                     division={editingDivision}
                     open={!!editingDivision}
                     onOpenChange={(open) => !open && setEditingDivision(null)}

@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'start_date',
     'due_date',
     'completed_at',
+    'approved_at',
     'requires_previous_task_done',
     'previous_task_id',
 ])]
@@ -37,6 +38,7 @@ class Task extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'completed_at' => 'datetime',
+            'approved_at' => 'datetime',
             'requires_previous_task_done' => 'boolean',
         ];
     }

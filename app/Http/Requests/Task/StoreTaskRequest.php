@@ -21,11 +21,30 @@ class StoreTaskRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+        $projectRules = ['required', 'uuid', 'exists:projects,id'];
+        $divisionRules = ['nullable', 'uuid', 'exists:divisions,id'];
+        $assigneeRules = ['nullable', 'uuid', 'exists:users,id'];
+
+        if ($user && ! $user->can('task.view_all') && $user->division_id !== null) {
+            $projectRules = [
+                'required',
+                'uuid',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('division_id', $user->division_id)),
+            ];
+            $divisionRules[] = Rule::in([$user->division_id]);
+            $assigneeRules = [
+                'nullable',
+                'uuid',
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('division_id', $user->division_id)),
+            ];
+        }
+
         return [
-            'project_id' => ['required', 'uuid', 'exists:projects,id'],
+            'project_id' => $projectRules,
             'parent_id' => ['nullable', 'uuid', 'exists:tasks,id'],
-            'division_id' => ['nullable', 'uuid', 'exists:divisions,id'],
-            'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'division_id' => $divisionRules,
+            'assignee_id' => $assigneeRules,
             'status_id' => ['required', 'integer', 'exists:project_statuses,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],

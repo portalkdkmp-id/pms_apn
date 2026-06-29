@@ -116,9 +116,32 @@ export type Task = {
     start_date: string | null;
     due_date: string | null;
     completed_at: string | null;
+    approved_at: string | null;
     requires_previous_task_done: boolean;
     previous_task_id: string | null;
-    project?: Pick<Project, 'id' | 'code' | 'title' | 'division_id'> | null;
+    project?:
+        | (Pick<
+              Project,
+              | 'id'
+              | 'code'
+              | 'title'
+              | 'description'
+              | 'division_id'
+              | 'owner_id'
+              | 'status_id'
+              | 'priority'
+              | 'start_date'
+              | 'end_date'
+              | 'expected_deadline'
+          > & {
+              division?: Option | null;
+              owner?: OptionUser | null;
+              status?: Pick<
+                  ProjectStatus,
+                  'id' | 'name' | 'slug' | 'color'
+              > | null;
+          })
+        | null;
     parent?: Pick<Task, 'id' | 'title'> | null;
     previous_task?: Pick<Task, 'id' | 'title' | 'status_id'> & {
         status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
@@ -127,10 +150,7 @@ export type Task = {
     assignee?: OptionUser | null;
     status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
     attachments?: Attachment[];
-    subtasks?: Pick<
-        Task,
-        'id' | 'parent_id' | 'title' | 'status_id' | 'assignee_id' | 'kpi_point'
-    >[];
+    subtasks?: Task[];
 };
 
 export type TaskProject = OptionProject & {

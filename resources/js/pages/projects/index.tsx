@@ -1,6 +1,6 @@
 import { Form, Head, router, usePage } from '@inertiajs/react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Clock, Edit, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
     destroy,
     index,
@@ -13,7 +13,11 @@ import {
     PaginationLinks,
     TableCard,
 } from '@/components/app-page';
-import { FormSelect, formSelectValue } from '@/components/form-select';
+import {
+    FormSelect,
+    formSelectValue,
+    SearchableFormSelect,
+} from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +46,7 @@ type Props = {
     parentProjects: OptionProject[];
     divisions: Option[];
     owners: OptionUser[];
-    statuses: Pick<ProjectStatus, 'id' | 'name' | 'color'>[];
+    statuses: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'>[];
     priorities: string[];
 };
 
@@ -56,6 +60,16 @@ function dateValue(value?: string | null): string {
     return value?.slice(0, 10) ?? '';
 }
 
+function isOverdueProject(project: Project): boolean {
+    const deadline = dateValue(project.expected_deadline);
+
+    return (
+        !!deadline &&
+        deadline < new Date().toISOString().slice(0, 10) &&
+        project.status?.slug !== 'done'
+    );
+}
+
 function ProjectFormDialog({
     parentProjects,
     divisions,
@@ -66,6 +80,7 @@ function ProjectFormDialog({
     open,
     onOpenChange,
 }: ProjectFormDialogProps) {
+    const { auth } = usePage<{ auth: Auth }>().props;
     const availableParentProjects = parentProjects.filter(
         (parentProject) => parentProject.id !== project?.id,
     );
@@ -88,6 +103,44 @@ function ProjectFormDialog({
     const [previousProjectId, setPreviousProjectId] = useState(
         formSelectValue(project?.previous_project_id),
     );
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        setParentId(formSelectValue(project?.parent_id));
+        setDivisionId(
+            project
+                ? formSelectValue(project.division_id)
+                : divisions.length === 1
+                  ? formSelectValue(divisions[0]?.id)
+                  : formSelectValue(),
+        );
+        const currentUserOwner = owners.find(
+            (owner) => owner.id === auth.user?.id,
+        );
+
+        setOwnerId(
+            project
+                ? formSelectValue(project.owner_id)
+                : currentUserOwner
+                  ? formSelectValue(currentUserOwner.id)
+                  : owners.length === 1
+                    ? formSelectValue(owners[0]?.id)
+                    : formSelectValue(),
+        );
+        setStatusId(
+            project
+                ? formSelectValue(project.status_id)
+                : statuses.length > 0
+                  ? formSelectValue(statuses[0]?.id)
+                  : formSelectValue(),
+        );
+        setPriority(formSelectValue(project?.priority ?? 'medium'));
+        setRequiresPrevious(project?.requires_previous_project_done ?? false);
+        setPreviousProjectId(formSelectValue(project?.previous_project_id));
+    }, [auth.user?.id, divisions, open, owners, project, statuses]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,12 +197,13 @@ function ProjectFormDialog({
                                     <Label htmlFor="parent_id">
                                         Parent project
                                     </Label>
-                                    <FormSelect
+                                    <SearchableFormSelect
                                         id="parent_id"
                                         name="parent_id"
                                         value={parentId}
                                         onValueChange={setParentId}
                                         placeholder="Tanpa parent project"
+                                        searchPlaceholder="Cari kode atau judul project..."
                                         options={availableParentProjects.map(
                                             (parentProject) => ({
                                                 label: `${parentProject.code} - ${parentProject.title}`,
@@ -161,12 +215,13 @@ function ProjectFormDialog({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="division_id">Divisi</Label>
-                                    <FormSelect
+                                    <SearchableFormSelect
                                         id="division_id"
                                         name="division_id"
                                         value={divisionId}
                                         onValueChange={setDivisionId}
                                         placeholder="Pilih divisi"
+                                        searchPlaceholder="Cari divisi..."
                                         options={divisions.map((division) => ({
                                             label: division.name,
                                             value: division.id,
@@ -176,12 +231,13 @@ function ProjectFormDialog({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="owner_id">Owner</Label>
-                                    <FormSelect
+                                    <SearchableFormSelect
                                         id="owner_id"
                                         name="owner_id"
                                         value={ownerId}
                                         onValueChange={setOwnerId}
                                         placeholder="Pilih owner"
+                                        searchPlaceholder="Cari owner..."
                                         options={owners.map((owner) => ({
                                             label: owner.name,
                                             value: owner.id,
@@ -476,84 +532,109 @@ export default function ProjectsIndex({
                                 </tr>
                             </thead>
                             <tbody>
-                                {projects.data.map((project) => (
-                                    <tr
-                                        key={project.id}
-                                        className="border-t border-border/70 transition hover:bg-fog/70"
-                                    >
-                                        <td className="px-5 py-4">
-                                            <div className="font-medium text-ink">
-                                                {project.title}
-                                            </div>
-                                            <div className="text-graphite">
-                                                {project.code} ·{' '}
-                                                {project.priority}
-                                            </div>
-                                            <div className="text-xs text-graphite">
-                                                {project.parent
-                                                    ? `Sub-project dari ${project.parent.code}`
-                                                    : `${project.children_count ?? 0} sub-project`}
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            {project.division?.name ?? '-'}
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            {project.owner?.name ?? '-'}
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <div className="inline-flex items-center gap-2 rounded-full bg-fog px-3 py-1">
-                                                <span
-                                                    className="size-2.5 rounded-full"
-                                                    style={{
-                                                        backgroundColor:
-                                                            project.status
-                                                                ?.color ??
-                                                            '#64748b',
-                                                    }}
-                                                />
-                                                {project.status?.name ?? '-'}
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            {dateValue(
-                                                project.expected_deadline,
-                                            ) || '-'}
-                                        </td>
-                                        {(canUpdate || canDelete) && (
+                                {projects.data.map((project) => {
+                                    const overdue = isOverdueProject(project);
+
+                                    return (
+                                        <tr
+                                            key={project.id}
+                                            className={`border-t border-border/70 transition hover:bg-fog/70 ${
+                                                overdue ? 'bg-red-50/70' : ''
+                                            }`}
+                                        >
                                             <td className="px-5 py-4">
-                                                <div className="flex justify-end gap-2">
-                                                    {canUpdate && (
-                                                        <Button
-                                                            size="icon-sm"
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                setEditingProject(
-                                                                    project,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Edit />
-                                                        </Button>
-                                                    )}
-                                                    {canDelete && (
-                                                        <Button
-                                                            size="icon-sm"
-                                                            variant="destructive"
-                                                            onClick={() =>
-                                                                deleteProject(
-                                                                    project,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Trash2 />
-                                                        </Button>
-                                                    )}
+                                                <div className="font-medium text-ink">
+                                                    {project.title}
+                                                </div>
+                                                <div className="text-graphite">
+                                                    {project.code} ·{' '}
+                                                    {project.priority}
+                                                </div>
+                                                <div className="text-xs text-graphite">
+                                                    {project.parent
+                                                        ? `Sub-project dari ${project.parent.code}`
+                                                        : `${project.children_count ?? 0} sub-project`}
                                                 </div>
                                             </td>
-                                        )}
-                                    </tr>
-                                ))}
+                                            <td className="px-5 py-4">
+                                                {project.division?.name ?? '-'}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {project.owner?.name ?? '-'}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="inline-flex items-center gap-2 rounded-full bg-fog px-3 py-1">
+                                                    <span
+                                                        className="size-2.5 rounded-full"
+                                                        style={{
+                                                            backgroundColor:
+                                                                project.status
+                                                                    ?.color ??
+                                                                '#64748b',
+                                                        }}
+                                                    />
+                                                    {project.status?.name ??
+                                                        '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    {overdue && (
+                                                        <Clock className="size-4 text-red-600" />
+                                                    )}
+                                                    <span
+                                                        className={
+                                                            overdue
+                                                                ? 'font-medium text-red-700'
+                                                                : ''
+                                                        }
+                                                    >
+                                                        {dateValue(
+                                                            project.expected_deadline,
+                                                        ) || '-'}
+                                                    </span>
+                                                </div>
+                                                {overdue && (
+                                                    <div className="text-xs font-medium text-red-600">
+                                                        Overdue
+                                                    </div>
+                                                )}
+                                            </td>
+                                            {(canUpdate || canDelete) && (
+                                                <td className="px-5 py-4">
+                                                    <div className="flex justify-end gap-2">
+                                                        {canUpdate && (
+                                                            <Button
+                                                                size="icon-sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    setEditingProject(
+                                                                        project,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Edit />
+                                                            </Button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <Button
+                                                                size="icon-sm"
+                                                                variant="destructive"
+                                                                onClick={() =>
+                                                                    deleteProject(
+                                                                        project,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}

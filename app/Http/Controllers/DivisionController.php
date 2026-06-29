@@ -21,6 +21,9 @@ class DivisionController extends Controller
 
         return Inertia::render('divisions/index', [
             'divisions' => $this->divisionService->paginate(),
+            'divisionOptions' => Division::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
             'users' => User::query()
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']),
