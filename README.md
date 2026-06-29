@@ -13,8 +13,9 @@ PMS APN adalah aplikasi Project Management System berbasis Laravel dan Inertia R
 - Laravel Wayfinder untuk typed route/action dari Laravel ke React
 - Spatie Laravel Permission untuk role dan permission
 - Laravel Passkeys dan Fortify security features
-- Database default lokal: SQLite
-- Queue, cache, dan session default: database driver
+- Database default: PostgreSQL (`pgsql`)
+- Cache default: Redis
+- Queue dan session default: database driver
 
 ### Frontend
 
@@ -253,9 +254,46 @@ Semua route utama berada di balik middleware `auth` dan `verified`.
 - Composer
 - Node.js 22+ direkomendasikan
 - npm
-- SQLite untuk setup default, atau MySQL/PostgreSQL jika ingin mengganti konfigurasi DB
+- PostgreSQL 14+ direkomendasikan
+- Redis 6+ direkomendasikan
+- Extension PHP PostgreSQL dan Redis, seperti `pdo_pgsql`, `pgsql`, dan `redis`/`phpredis`
 
-### Instalasi
+### Install PostgreSQL dan Redis
+
+#### macOS dengan Homebrew
+
+```bash
+brew install postgresql@16 redis
+brew services start postgresql@16
+brew services start redis
+createdb pms_apn
+```
+
+#### Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install -y postgresql postgresql-contrib redis-server php-pgsql php-redis
+sudo systemctl enable --now postgresql
+sudo systemctl enable --now redis-server
+```
+
+Buat database dan user PostgreSQL:
+
+```bash
+sudo -u postgres psql
+```
+
+Lalu jalankan di prompt PostgreSQL:
+
+```sql
+CREATE DATABASE pms_apn;
+CREATE USER pms_apn WITH ENCRYPTED PASSWORD 'secret';
+GRANT ALL PRIVILEGES ON DATABASE pms_apn TO pms_apn;
+\q
+```
+
+### Instalasi Aplikasi
 
 ```bash
 composer install
@@ -264,19 +302,27 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Jika memakai SQLite:
-
-```bash
-touch database/database.sqlite
-```
-
-Pastikan `.env` memakai:
+Pastikan `.env` memakai PostgreSQL dan Redis sesuai `.env.example`:
 
 ```env
-DB_CONNECTION=sqlite
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=pms_apn
+DB_USERNAME=postgres
+DB_PASSWORD=secret
+
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
-CACHE_STORE=database
+
+CACHE_STORE=redis
+CACHE_PREFIX=pms_apn_
+CACHE_DRIVER=redis
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
 ```
 
 Lalu jalankan:
@@ -372,13 +418,17 @@ Server production minimal membutuhkan:
 - Composer
 - Node.js dan npm untuk build asset, atau build asset dilakukan di CI
 - Web server Nginx/Apache
-- Database production, disarankan MySQL/PostgreSQL/MariaDB
+- PostgreSQL
+- Redis untuk cache
 - Supervisor/systemd untuk queue worker
 - SSL certificate
 
 Pastikan extension PHP Laravel tersedia, seperti:
 
 - `pdo`
+- `pdo_pgsql`
+- `pgsql`
+- `redis`
 - `mbstring`
 - `openssl`
 - `tokenizer`
@@ -389,7 +439,45 @@ Pastikan extension PHP Laravel tersedia, seperti:
 - `curl`
 - `zip`
 
-### 2. Clone dan Install Dependency
+### 2. Install PostgreSQL dan Redis di Server
+
+Contoh untuk Ubuntu/Debian:
+
+```bash
+sudo apt update
+sudo apt install -y postgresql postgresql-contrib redis-server php8.3-pgsql php8.3-redis
+sudo systemctl enable --now postgresql
+sudo systemctl enable --now redis-server
+```
+
+Buat database dan user production:
+
+```bash
+sudo -u postgres psql
+```
+
+Lalu jalankan di prompt PostgreSQL:
+
+```sql
+CREATE DATABASE pms_apn;
+CREATE USER pms_apn WITH ENCRYPTED PASSWORD 'strong-password';
+GRANT ALL PRIVILEGES ON DATABASE pms_apn TO pms_apn;
+\q
+```
+
+Cek Redis:
+
+```bash
+redis-cli ping
+```
+
+Output yang diharapkan:
+
+```text
+PONG
+```
+
+### 3. Clone dan Install Dependency
 
 ```bash
 git clone <repository-url> pms_apn
@@ -401,7 +489,7 @@ npm run build
 
 Jika asset dibuild oleh CI/CD, folder `public/build` dapat dikirim sebagai artifact dan server tidak perlu menjalankan npm.
 
-### 3. Konfigurasi Environment
+### 4. Konfigurasi Environment
 
 ```bash
 cp .env.example .env
@@ -416,17 +504,24 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://domain-production.com
 
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=pms_apn
 DB_USERNAME=pms_apn
 DB_PASSWORD=strong-password
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
-CACHE_STORE=database
+CACHE_STORE=redis
+CACHE_PREFIX=pms_apn_
+CACHE_DRIVER=redis
 FILESYSTEM_DISK=public
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
 
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.example.com
@@ -439,7 +534,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 VITE_APP_NAME="${APP_NAME}"
 ```
 
-### 4. Database Migration dan Seeder
+### 5. Database Migration dan Seeder
 
 ```bash
 php artisan migrate --force
@@ -457,7 +552,7 @@ php artisan db:seed --force
 
 Pastikan password default diganti setelah login pertama.
 
-### 5. Storage Link
+### 6. Storage Link
 
 ```bash
 php artisan storage:link
@@ -470,7 +565,7 @@ storage/
 bootstrap/cache/
 ```
 
-### 6. Optimize Laravel
+### 7. Optimize Laravel
 
 ```bash
 php artisan optimize:clear
@@ -480,7 +575,7 @@ php artisan view:cache
 php artisan event:cache
 ```
 
-### 7. Queue Worker
+### 8. Queue Worker
 
 Jika `QUEUE_CONNECTION=database`, jalankan worker:
 
@@ -513,7 +608,7 @@ sudo supervisorctl update
 sudo supervisorctl restart pms-apn-worker:*
 ```
 
-### 8. Nginx Example
+### 9. Nginx Example
 
 ```nginx
 server {
@@ -551,7 +646,7 @@ server {
 
 Aktifkan HTTPS melalui Certbot atau load balancer sesuai infrastruktur.
 
-### 9. Deployment Update
+### 10. Deployment Update
 
 Untuk update aplikasi:
 
