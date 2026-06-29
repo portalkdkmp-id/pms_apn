@@ -19,6 +19,7 @@ type FormSelectProps = {
     options: FormSelectOption[];
     placeholder: string;
     className?: string;
+    disabled?: boolean;
 };
 
 const EMPTY_VALUE = '__empty__';
@@ -41,6 +42,7 @@ export function FormSelect({
     options,
     placeholder,
     className = 'w-full',
+    disabled = false,
 }: FormSelectProps) {
     return (
         <>
@@ -49,7 +51,11 @@ export function FormSelect({
                 name={name}
                 value={formSelectInputValue(value)}
             />
-            <Select value={value} onValueChange={onValueChange}>
+            <Select
+                value={value}
+                onValueChange={onValueChange}
+                disabled={disabled}
+            >
                 <SelectTrigger id={id} className={className}>
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>

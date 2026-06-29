@@ -47,14 +47,14 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request): RedirectResponse
     {
-        $this->taskService->create($request->validated());
+        $this->taskService->create($request->validated(), $request->user());
 
         return back()->with('success', 'Task berhasil dibuat.');
     }
 
     public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
     {
-        $this->taskService->update($task, $request->validated());
+        $this->taskService->update($task, $request->validated(), $request->user());
 
         return back()->with('success', 'Task berhasil diperbarui.');
     }

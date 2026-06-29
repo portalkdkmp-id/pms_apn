@@ -34,6 +34,10 @@ class StoreTaskRequest extends FormRequest
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'completed_at' => ['nullable', 'date'],
+            'requires_previous_task_done' => ['sometimes', 'boolean'],
+            'previous_task_id' => ['nullable', 'required_if:requires_previous_task_done,1', 'uuid', 'exists:tasks,id'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip'],
         ];
     }
 
@@ -50,6 +54,11 @@ class StoreTaskRequest extends FormRequest
                 $parentId = $this->input('parent_id');
                 if ($parentId && Task::query()->whereKey($parentId)->where('project_id', '!=', $project->id)->exists()) {
                     $validator->errors()->add('parent_id', 'Parent task harus berada pada project yang sama.');
+                }
+
+                $previousTaskId = $this->input('previous_task_id');
+                if ($previousTaskId && Task::query()->whereKey($previousTaskId)->where('project_id', '!=', $project->id)->exists()) {
+                    $validator->errors()->add('previous_task_id', 'Previous task harus berada pada project yang sama.');
                 }
 
                 $divisionId = $this->input('division_id') ?: $project->division_id;

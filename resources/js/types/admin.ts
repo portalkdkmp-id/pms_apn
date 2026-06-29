@@ -54,6 +54,15 @@ export type ProjectStatus = {
     is_active: boolean;
 };
 
+export type Attachment = {
+    id: string;
+    original_name: string;
+    mime_type: string | null;
+    size: number;
+    url: string;
+    created_at: string;
+};
+
 export type Project = {
     id: string;
     code: string;
@@ -68,10 +77,16 @@ export type Project = {
     start_date: string | null;
     end_date: string | null;
     expected_deadline: string | null;
+    requires_previous_project_done: boolean;
+    previous_project_id: string | null;
     division?: Option | null;
     parent?: Pick<Project, 'id' | 'code' | 'title' | 'division_id'> | null;
+    previous_project?: Pick<Project, 'id' | 'code' | 'title' | 'status_id'> & {
+        status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
+    };
     owner?: OptionUser | null;
-    status?: Pick<ProjectStatus, 'id' | 'name' | 'color'> | null;
+    status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
+    attachments?: Attachment[];
     children_count?: number;
 };
 
@@ -101,11 +116,17 @@ export type Task = {
     start_date: string | null;
     due_date: string | null;
     completed_at: string | null;
+    requires_previous_task_done: boolean;
+    previous_task_id: string | null;
     project?: Pick<Project, 'id' | 'code' | 'title' | 'division_id'> | null;
     parent?: Pick<Task, 'id' | 'title'> | null;
+    previous_task?: Pick<Task, 'id' | 'title' | 'status_id'> & {
+        status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
+    };
     division?: Option | null;
     assignee?: OptionUser | null;
-    status?: Pick<ProjectStatus, 'id' | 'name' | 'color'> | null;
+    status?: Pick<ProjectStatus, 'id' | 'name' | 'slug' | 'color'> | null;
+    attachments?: Attachment[];
     subtasks?: Pick<
         Task,
         'id' | 'parent_id' | 'title' | 'status_id' | 'assignee_id' | 'kpi_point'

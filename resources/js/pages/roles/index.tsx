@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/RoleController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -75,7 +81,7 @@ function RoleFormDialog({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Permissions</Label>
-                                <div className="grid max-h-72 gap-2 overflow-y-auto rounded-lg border p-3 sm:grid-cols-2">
+                                <div className="grid max-h-72 gap-2 overflow-y-auto rounded-sm border border-border bg-smoke-50 p-3 sm:grid-cols-2">
                                     {permissions.map((permission) => (
                                         <label
                                             key={permission}
@@ -137,37 +143,45 @@ export default function RolesIndex({ roles, permissions }: Props) {
         <>
             <Head title="Roles" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">
-                            Roles & Permissions
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola role dan akses permission aplikasi.
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus />
-                            Tambah
-                        </Button>
-                    )}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Access policy"
+                    title="Roles & Permissions"
+                    description="Kelola role dan permission agar akses aplikasi tetap jelas, terbatas, dan mudah diaudit."
+                    meta={
+                        <>
+                            <span>{roles.data.length} role tampil</span>
+                            <span>{permissions.length} permission</span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Role baru
+                            </Button>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {roles.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada role"
+                            description="Tambahkan role untuk mengatur paket permission user."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Role
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Permissions
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -175,11 +189,14 @@ export default function RolesIndex({ roles, permissions }: Props) {
                             </thead>
                             <tbody>
                                 {roles.data.map((role) => (
-                                    <tr key={role.id} className="border-t">
-                                        <td className="px-4 py-3 font-medium">
+                                    <tr
+                                        key={role.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4 font-medium text-ink">
                                             {role.name}
                                         </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
+                                        <td className="px-5 py-4 text-graphite">
                                             <div className="flex flex-wrap gap-2">
                                                 {role.permissions.length > 0 ? (
                                                     role.permissions.map(
@@ -204,7 +221,7 @@ export default function RolesIndex({ roles, permissions }: Props) {
                                             </div>
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -237,26 +254,10 @@ export default function RolesIndex({ roles, permissions }: Props) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {roles.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={roles.links} />
             </div>
 
             {canCreate && (

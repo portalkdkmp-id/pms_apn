@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\FlowActivityController;
+use App\Http\Controllers\GanttChartController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\RoleController;
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('flow-activities', [FlowActivityController::class, 'index'])->name('flow-activities.index');
     Route::get('flow-activities/flow-2', [FlowActivityController::class, 'flow2'])->name('flow-activities.flow-2');
     Route::get('flow-activities/timeline', [FlowActivityController::class, 'timeline'])->name('flow-activities.timeline');
+    Route::get('gantt-chart', [GanttChartController::class, 'index'])->name('gantt-chart.index');
 
     Route::get('users/export', [UserController::class, 'export'])->name('users.export');
     Route::post('users/import', [UserController::class, 'import'])->name('users.import');

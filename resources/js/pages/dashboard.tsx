@@ -1,12 +1,14 @@
 import { Head } from '@inertiajs/react';
 import {
     AlertTriangle,
+    ArrowUpRight,
     BriefcaseBusiness,
     CheckCircle2,
     CircleDot,
     Target,
     Users,
 } from 'lucide-react';
+import { PageHeader } from '@/components/app-page';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -91,25 +93,41 @@ function StatCard({
     value,
     description,
     icon: Icon,
+    tone,
 }: {
     title: string;
     value: number | string;
     description: string;
     icon: typeof BriefcaseBusiness;
+    tone: 'ink' | 'warm' | 'cool' | 'neutral';
 }) {
+    const tones = {
+        ink: 'bg-ink text-pure-white ring-ink/10',
+        warm: 'bg-orange-50 text-ember-orange ring-orange-200',
+        cool: 'bg-blue-50 text-circuit-blue ring-blue-200',
+        neutral: 'bg-smoke-50 text-graphite ring-smoke-200',
+    };
+
     return (
-        <Card size="sm" className="rounded-lg">
+        <Card size="sm" className="relative transition hover:-translate-y-0.5">
             <CardHeader className="grid-cols-[1fr_auto]">
                 <div>
-                    <CardDescription>{title}</CardDescription>
-                    <CardTitle className="text-2xl">{value}</CardTitle>
+                    <CardDescription className="text-xs font-medium tracking-[0.12em] text-graphite uppercase">
+                        {title}
+                    </CardDescription>
+                    <CardTitle className="mt-2 text-3xl font-medium tracking-[-0.02em] text-ink">
+                        {value}
+                    </CardTitle>
                 </div>
-                <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-                    <Icon className="size-4 text-muted-foreground" />
+                <div
+                    className={`flex size-11 items-center justify-center rounded-sm ring-1 ${tones[tone]}`}
+                >
+                    <Icon className="size-5" />
                 </div>
             </CardHeader>
-            <CardContent className="text-xs text-muted-foreground">
-                {description}
+            <CardContent className="flex items-center gap-2 text-xs text-graphite">
+                <ArrowUpRight className="size-3.5 text-ember-orange" />
+                <span>{description}</span>
             </CardContent>
         </Card>
     );
@@ -119,15 +137,13 @@ function BarChart({ title, items }: { title: string; items: ChartItem[] }) {
     const max = Math.max(...items.map((item) => item.value), 1);
 
     return (
-        <Card className="rounded-lg">
+        <Card>
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
                 {items.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        Belum ada data.
-                    </p>
+                    <p className="text-sm text-graphite">Belum ada data.</p>
                 ) : (
                     items.map((item) => (
                         <div key={item.label} className="grid gap-1">
@@ -145,16 +161,17 @@ function BarChart({ title, items }: { title: string; items: ChartItem[] }) {
                                         {item.label}
                                     </span>
                                 </div>
-                                <span className="font-medium">
+                                <span className="font-medium text-ink">
                                     {item.value}
                                 </span>
                             </div>
-                            <div className="h-2 overflow-hidden rounded-full bg-muted">
+                            <div className="h-2 overflow-hidden rounded-full bg-fog">
                                 <div
-                                    className="h-full rounded-full bg-primary"
+                                    className="h-full rounded-full bg-ember-orange"
                                     style={{
                                         width: `${Math.max((item.value / max) * 100, item.value > 0 ? 6 : 0)}%`,
-                                        backgroundColor: item.color,
+                                        backgroundColor:
+                                            item.color ?? '#ea580c',
                                     }}
                                 />
                             </div>
@@ -201,23 +218,23 @@ export default function Dashboard({
         <>
             <Head title="Dashboard" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Dashboard</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Ringkasan performa PMS, project, team, task, dan
-                            KPI.
-                        </p>
-                    </div>
-                    <Badge
-                        variant={
-                            stats.overdueTasks > 0 ? 'destructive' : 'outline'
-                        }
-                    >
-                        {stats.overdueTasks} task overdue
-                    </Badge>
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    title="Dashboard"
+                    description="Ringkasan performa PMS, project, team, task, dan KPI dalam satu tampilan kerja."
+                    actions={
+                        <Badge
+                            className="h-8 bg-fog px-3 text-ink hover:bg-fog"
+                            variant={
+                                stats.overdueTasks > 0
+                                    ? 'destructive'
+                                    : 'outline'
+                            }
+                        >
+                            {stats.overdueTasks} task overdue
+                        </Badge>
+                    }
+                />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <StatCard
@@ -225,29 +242,33 @@ export default function Dashboard({
                         value={stats.projects}
                         description={`${stats.activeProjects} project masih aktif`}
                         icon={BriefcaseBusiness}
+                        tone="cool"
                     />
                     <StatCard
                         title="Tasks"
                         value={stats.tasks}
                         description={`${stats.openTasks} task masih terbuka`}
                         icon={CheckCircle2}
+                        tone="warm"
                     />
                     <StatCard
                         title="Teams"
                         value={stats.teams}
                         description={`${stats.users} user dari ${stats.divisions} divisi`}
                         icon={Users}
+                        tone="neutral"
                     />
                     <StatCard
                         title="KPI Project"
                         value={`${stats.kpiPercent}%`}
                         description={`${stats.kpiValue} KPI task done dari target ${stats.kpiTarget}`}
                         icon={Target}
+                        tone="ink"
                     />
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                    <Card className="rounded-lg">
+                    <Card>
                         <CardHeader>
                             <CardTitle>Progress KPI</CardTitle>
                             <CardDescription>
@@ -263,9 +284,9 @@ export default function Dashboard({
                                         {stats.kpiPercent}%
                                     </span>
                                 </div>
-                                <div className="h-3 overflow-hidden rounded-full bg-muted">
+                                <div className="h-3 overflow-hidden rounded-full bg-fog">
                                     <div
-                                        className="h-full rounded-full bg-primary"
+                                        className="h-full rounded-full bg-ember-orange"
                                         style={{ width: `${kpiWidth}%` }}
                                     />
                                 </div>
@@ -277,15 +298,15 @@ export default function Dashboard({
                                         {taskKpiPercent}%
                                     </span>
                                 </div>
-                                <div className="h-3 overflow-hidden rounded-full bg-muted">
+                                <div className="h-3 overflow-hidden rounded-full bg-fog">
                                     <div
-                                        className="h-full rounded-full bg-emerald-600"
+                                        className="h-full rounded-full bg-pulse-green"
                                         style={{
                                             width: `${Math.min(taskKpiPercent, 100)}%`,
                                         }}
                                     />
                                 </div>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-graphite">
                                     {stats.completedTaskKpiPoints} dari{' '}
                                     {stats.taskKpiPoints} KPI point task
                                     berstatus Done.
@@ -312,7 +333,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-3">
-                    <Card className="rounded-lg xl:col-span-2">
+                    <Card className="xl:col-span-2">
                         <CardHeader>
                             <CardTitle>Recent Projects</CardTitle>
                             <CardDescription>
@@ -321,19 +342,19 @@ export default function Dashboard({
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="text-left text-muted-foreground">
+                                <table className="w-full border-separate border-spacing-0 text-sm">
+                                    <thead className="text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                         <tr>
-                                            <th className="py-2 pr-3 font-medium">
+                                            <th className="border-b border-border/70 py-3 pr-3 font-medium">
                                                 Project
                                             </th>
-                                            <th className="py-2 pr-3 font-medium">
+                                            <th className="border-b border-border/70 py-3 pr-3 font-medium">
                                                 Owner
                                             </th>
-                                            <th className="py-2 pr-3 font-medium">
+                                            <th className="border-b border-border/70 py-3 pr-3 font-medium">
                                                 Status
                                             </th>
-                                            <th className="py-2 text-right font-medium">
+                                            <th className="border-b border-border/70 py-3 text-right font-medium">
                                                 Deadline
                                             </th>
                                         </tr>
@@ -342,13 +363,13 @@ export default function Dashboard({
                                         {recentProjects.map((project) => (
                                             <tr
                                                 key={project.id}
-                                                className="border-t"
+                                                className="transition hover:bg-fog/70"
                                             >
                                                 <td className="py-3 pr-3">
-                                                    <div className="font-medium">
+                                                    <div className="font-medium text-ink">
                                                         {project.title}
                                                     </div>
-                                                    <div className="text-xs text-muted-foreground">
+                                                    <div className="text-xs text-graphite">
                                                         {project.code} ·{' '}
                                                         {project.division ??
                                                             '-'}
@@ -375,7 +396,7 @@ export default function Dashboard({
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-lg">
+                    <Card>
                         <CardHeader>
                             <CardTitle>My Open Tasks</CardTitle>
                             <CardDescription>
@@ -384,27 +405,27 @@ export default function Dashboard({
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {myTasks.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-graphite">
                                     Tidak ada task terbuka.
                                 </p>
                             ) : (
                                 myTasks.map((task) => (
                                     <div
                                         key={task.id}
-                                        className="rounded-lg border p-3"
+                                        className="rounded-sm border border-border bg-fog p-3 transition hover:bg-white"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
-                                                <div className="font-medium">
+                                                <div className="font-medium text-ink">
                                                     {task.title}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="text-xs text-graphite">
                                                     {task.project ?? '-'}
                                                 </div>
                                             </div>
                                             <StatusBadge status={task.status} />
                                         </div>
-                                        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                                        <div className="mt-2 flex justify-between text-xs text-graphite">
                                             <span>
                                                 Due {formatDate(task.dueDate)}
                                             </span>
@@ -417,10 +438,10 @@ export default function Dashboard({
                     </Card>
                 </div>
 
-                <Card className="rounded-lg">
+                <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <AlertTriangle className="size-4 text-destructive" />
+                            <AlertTriangle className="size-4 text-ember-orange" />
                             Overdue Tasks
                         </CardTitle>
                         <CardDescription>
@@ -430,25 +451,25 @@ export default function Dashboard({
                     <CardContent>
                         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                             {overdueTasks.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-graphite">
                                     Tidak ada overdue task.
                                 </p>
                             ) : (
                                 overdueTasks.map((task) => (
                                     <div
                                         key={task.id}
-                                        className="rounded-lg border p-3"
+                                        className="rounded-sm border border-border bg-fog p-3 transition hover:bg-white"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
-                                                <div className="font-medium">
+                                                <div className="font-medium text-ink">
                                                     {task.title}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="text-xs text-graphite">
                                                     {task.project ?? '-'}
                                                 </div>
                                             </div>
-                                            <CircleDot className="size-4 text-destructive" />
+                                            <CircleDot className="size-4 text-ember-orange" />
                                         </div>
                                         <div className="mt-3 flex flex-wrap items-center gap-2">
                                             <StatusBadge status={task.status} />
@@ -459,7 +480,7 @@ export default function Dashboard({
                                                 {task.kpiPoint} KPI
                                             </Badge>
                                         </div>
-                                        <div className="mt-2 text-xs text-muted-foreground">
+                                        <div className="mt-2 text-xs text-graphite">
                                             PIC: {task.assignee ?? '-'}
                                         </div>
                                     </div>

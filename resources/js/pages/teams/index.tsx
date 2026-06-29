@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/TeamController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -68,7 +74,16 @@ function TeamFormDialog({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <div className="text-sm font-medium text-ink">
+                                        Informasi team
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Hubungkan team ke project dan leader
+                                        agar assignment lebih jelas.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Nama</Label>
                                     <Input
@@ -132,9 +147,9 @@ function TeamFormDialog({
                                 </div>
                             </div>
 
-                            <div className="grid gap-2">
+                            <div className="grid gap-2 rounded-sm border border-border bg-smoke-50 p-4">
                                 <Label>Members</Label>
-                                <div className="grid max-h-56 gap-2 overflow-y-auto rounded-lg border p-3 sm:grid-cols-2">
+                                <div className="grid max-h-56 gap-2 overflow-y-auto rounded-sm border border-border bg-white p-3 sm:grid-cols-2">
                                     {users.map((user) => (
                                         <label
                                             key={user.id}
@@ -195,41 +210,52 @@ export default function TeamsIndex({ teams, projects, users }: Props) {
         <>
             <Head title="Teams" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Teams</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola team yang menangani project.
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus />
-                            Tambah
-                        </Button>
-                    )}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="People assignment"
+                    title="Teams"
+                    description="Susun team per project agar leader, member, dan tanggung jawab pekerjaan mudah ditemukan."
+                    meta={
+                        <>
+                            <span>{teams.data.length} team tampil</span>
+                            <span>{projects.length} project</span>
+                            <span>{users.length} user tersedia</span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Team baru
+                            </Button>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {teams.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada team"
+                            description="Buat team untuk mengelompokkan member berdasarkan project."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Team
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Project
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Leader
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Members
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -237,30 +263,33 @@ export default function TeamsIndex({ teams, projects, users }: Props) {
                             </thead>
                             <tbody>
                                 {teams.data.map((team) => (
-                                    <tr key={team.id} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <div className="font-medium">
+                                    <tr
+                                        key={team.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <div className="font-medium text-ink">
                                                 {team.name}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {team.slug}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {team.project
                                                 ? `${team.project.code} - ${team.project.title}`
                                                 : '-'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {team.leader?.name ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {team.members
                                                 .map((member) => member.name)
                                                 .join(', ') || '-'}
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -293,26 +322,10 @@ export default function TeamsIndex({ teams, projects, users }: Props) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {teams.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={teams.links} />
             </div>
 
             {canCreate && (
