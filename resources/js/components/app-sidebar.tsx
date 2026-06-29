@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
     ChartNoAxesGantt,
+    ClipboardCheck,
     GitBranch,
     LayoutGrid,
     ListTodo,
@@ -30,6 +31,7 @@ import { index as projectStatusesIndex } from '@/routes/project-statuses';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as rolesIndex } from '@/routes/roles';
 import { index as tasksIndex } from '@/routes/tasks';
+import { pending as pendingTasksIndex } from '@/routes/tasks';
 import { index as teamsIndex } from '@/routes/teams';
 import { index as usersIndex } from '@/routes/users';
 import type { Auth, NavItem } from '@/types';
@@ -66,6 +68,12 @@ const navGroups: Array<{ title: string; items: PermissionNavItem[] }> = [
                 href: tasksIndex(),
                 icon: SquareCheckBig,
                 permission: 'task.view',
+            },
+            {
+                title: 'Pending Tasks',
+                href: pendingTasksIndex(),
+                icon: ClipboardCheck,
+                permission: 'task.approve',
             },
             {
                 title: 'Flow Aktivitas',

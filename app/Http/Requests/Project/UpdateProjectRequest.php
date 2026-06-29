@@ -20,14 +20,26 @@ class UpdateProjectRequest extends FormRequest
     {
         /** @var Project $project */
         $project = $this->route('project');
+        $user = $this->user();
+        $divisionRules = ['required', 'uuid', 'exists:divisions,id'];
+        $ownerRules = ['required', 'uuid', 'exists:users,id'];
+
+        if ($user && ! $user->can('project.view_all') && $user->can('project.view_division') && $user->division_id !== null) {
+            $divisionRules[] = Rule::in([$user->division_id]);
+            $ownerRules = [
+                'required',
+                'uuid',
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('division_id', $user->division_id)),
+            ];
+        }
 
         return [
             'code' => ['required', 'string', 'max:255', Rule::unique('projects', 'code')->ignore($project)],
             'parent_id' => ['nullable', 'uuid', 'exists:projects,id', Rule::notIn([$project->id])],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'division_id' => ['required', 'uuid', 'exists:divisions,id'],
-            'owner_id' => ['required', 'uuid', 'exists:users,id'],
+            'division_id' => $divisionRules,
+            'owner_id' => $ownerRules,
             'status_id' => ['required', 'integer', 'exists:project_statuses,id'],
             'priority' => ['required', 'string', Rule::in(['low', 'medium', 'high', 'critical'])],
             'kpi_target' => ['nullable', 'numeric', 'min:0'],

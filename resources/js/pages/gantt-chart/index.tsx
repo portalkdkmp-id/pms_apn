@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { GitBranch, Lock, Milestone, Rows3 } from 'lucide-react';
+import { Clock, GitBranch, Lock, Milestone, Rows3 } from 'lucide-react';
 import { PageHeader } from '@/components/app-page';
 import { Button } from '@/components/ui/button';
 import { index as flowActivitiesIndex } from '@/routes/flow-activities';
@@ -25,6 +25,7 @@ type GanttRow = {
     title: string;
     subtitle: string;
     statusName: string;
+    statusSlug: string | null;
     statusColor: string;
     startDate: string | null;
     endDate: string | null;
@@ -66,6 +67,18 @@ function diffDays(from: Date, to: Date): number {
     return Math.max(0, Math.round((to.getTime() - from.getTime()) / DAY_MS));
 }
 
+function signedDiffDays(from: Date, to: Date): number {
+    return Math.round((to.getTime() - from.getTime()) / DAY_MS);
+}
+
+function todayDate(): Date {
+    return parseDate(new Date().toISOString()) ?? new Date();
+}
+
+function isDoneStatus(slug?: string | null): boolean {
+    return slug === 'done';
+}
+
 function isProjectBlocked(project: GanttProject): boolean {
     return (
         project.requires_previous_project_done &&
@@ -89,6 +102,7 @@ function flattenTaskRows(tasks: GanttTask[], level: number): GanttRow[] {
             title: task.title,
             subtitle: task.assignee?.name ?? task.division?.name ?? '-',
             statusName: task.status?.name ?? '-',
+            statusSlug: task.status?.slug ?? null,
             statusColor: task.status?.color ?? '#10b981',
             startDate: task.start_date,
             endDate: task.due_date,
@@ -108,6 +122,7 @@ function buildRows(projects: GanttProject[]): GanttRow[] {
             title: project.title,
             subtitle: `${project.code} · ${project.division?.name ?? '-'}`,
             statusName: project.status?.name ?? '-',
+            statusSlug: project.status?.slug ?? null,
             statusColor: project.status?.color ?? '#10b981',
             startDate: project.start_date,
             endDate: project.end_date ?? project.expected_deadline,
@@ -119,6 +134,7 @@ function buildRows(projects: GanttProject[]): GanttRow[] {
 }
 
 function timelineBounds(rows: GanttRow[]): { start: Date; end: Date } {
+    const today = todayDate();
     const dates = rows.flatMap((row) =>
         [row.startDate, row.endDate, row.deadlineDate]
             .map(parseDate)
@@ -126,16 +142,19 @@ function timelineBounds(rows: GanttRow[]): { start: Date; end: Date } {
     );
 
     if (dates.length === 0) {
-        const today = new Date();
-
         return {
             start: today,
             end: addDays(today, 30),
         };
     }
 
-    const min = new Date(Math.min(...dates.map((date) => date.getTime())));
-    const max = new Date(Math.max(...dates.map((date) => date.getTime())));
+    const scopedDates = [...dates, today];
+    const min = new Date(
+        Math.min(...scopedDates.map((date) => date.getTime())),
+    );
+    const max = new Date(
+        Math.max(...scopedDates.map((date) => date.getTime())),
+    );
 
     return {
         start: addDays(min, -3),
@@ -171,10 +190,46 @@ function deadlineStyle(row: GanttRow, start: Date, totalDays: number) {
     };
 }
 
+function todayStyle(today: Date, start: Date, totalDays: number) {
+    return {
+        left: `${Math.min(100, Math.max(0, (diffDays(start, today) / totalDays) * 100))}%`,
+    };
+}
+
+function rowTimeSignal(
+    row: GanttRow,
+    today: Date,
+): {
+    overdue: boolean;
+    label: string | null;
+} {
+    const targetDate = parseDate(row.deadlineDate ?? row.endDate);
+
+    if (!targetDate || isDoneStatus(row.statusSlug)) {
+        return { overdue: false, label: null };
+    }
+
+    const remainingDays = signedDiffDays(today, targetDate);
+
+    if (remainingDays < 0) {
+        return {
+            overdue: true,
+            label: `${Math.abs(remainingDays)} hari overdue`,
+        };
+    }
+
+    return {
+        overdue: false,
+        label: `${remainingDays} hari lagi`,
+    };
+}
+
 export default function GanttChartIndex({ projects }: Props) {
     const rows = buildRows(projects);
     const { start, end } = timelineBounds(rows);
+    const today = todayDate();
     const totalDays = Math.max(1, diffDays(start, end));
+    const todayMarker = todayStyle(today, start, totalDays);
     const ticks = Array.from({ length: 7 }, (_, index) => {
         const date = addDays(start, Math.round((totalDays / 6) * index));
 
@@ -223,6 +278,10 @@ export default function GanttChartIndex({ projects }: Props) {
                         <Lock className="size-3.5 text-red-500" />
                         Menunggu predecessor Done
                     </div>
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="size-3.5 text-red-600" />
+                        Overdue dari hari ini
+                    </div>
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-hidden bg-white">
@@ -232,35 +291,53 @@ export default function GanttChartIndex({ projects }: Props) {
                                 <Rows3 className="size-4 text-pulse-green" />
                                 Aktivitas
                             </div>
-                            {rows.map((row) => (
-                                <div
-                                    key={row.id}
-                                    className={`grid min-h-16 border-b px-4 py-2 ${
-                                        row.blocked
-                                            ? 'bg-red-50 text-red-900'
-                                            : 'bg-white'
-                                    }`}
-                                    style={{
-                                        paddingLeft: `${16 + row.level * 18}px`,
-                                    }}
-                                >
-                                    <div className="flex items-center gap-2 text-sm font-medium">
-                                        {row.blocked && (
-                                            <Lock className="size-3.5 text-red-500" />
+                            {rows.map((row) => {
+                                const timeSignal = rowTimeSignal(row, today);
+
+                                return (
+                                    <div
+                                        key={row.id}
+                                        className={`grid min-h-16 border-b px-4 py-2 ${
+                                            row.blocked || timeSignal.overdue
+                                                ? 'bg-red-50 text-red-900'
+                                                : 'bg-white'
+                                        }`}
+                                        style={{
+                                            paddingLeft: `${16 + row.level * 18}px`,
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-2 text-sm font-medium">
+                                            {row.blocked && (
+                                                <Lock className="size-3.5 text-red-500" />
+                                            )}
+                                            {timeSignal.overdue && (
+                                                <Clock className="size-3.5 text-red-600" />
+                                            )}
+                                            <span className="truncate">
+                                                {row.title}
+                                            </span>
+                                        </div>
+                                        <div className="truncate text-xs text-muted-foreground">
+                                            {row.subtitle}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {formatDate(row.startDate)} -{' '}
+                                            {formatDate(row.endDate)}
+                                        </div>
+                                        {timeSignal.label && (
+                                            <div
+                                                className={`text-xs font-medium ${
+                                                    timeSignal.overdue
+                                                        ? 'text-red-600'
+                                                        : 'text-graphite'
+                                                }`}
+                                            >
+                                                {timeSignal.label}
+                                            </div>
                                         )}
-                                        <span className="truncate">
-                                            {row.title}
-                                        </span>
                                     </div>
-                                    <div className="truncate text-xs text-muted-foreground">
-                                        {row.subtitle}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {formatDate(row.startDate)} -{' '}
-                                        {formatDate(row.endDate)}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className="min-w-[900px]">
@@ -280,12 +357,13 @@ export default function GanttChartIndex({ projects }: Props) {
                                     start,
                                     totalDays,
                                 );
+                                const timeSignal = rowTimeSignal(row, today);
 
                                 return (
                                     <div
                                         key={row.id}
                                         className={`relative min-h-16 border-b ${
-                                            row.blocked
+                                            row.blocked || timeSignal.overdue
                                                 ? 'bg-red-50/60'
                                                 : 'bg-white'
                                         }`}
@@ -300,7 +378,8 @@ export default function GanttChartIndex({ projects }: Props) {
                                         </div>
                                         <div
                                             className={`absolute top-5 h-5 rounded-sm shadow-sm ${
-                                                row.blocked
+                                                row.blocked ||
+                                                timeSignal.overdue
                                                     ? 'bg-red-500'
                                                     : row.type === 'project'
                                                       ? 'bg-emerald-600'
@@ -320,6 +399,14 @@ export default function GanttChartIndex({ projects }: Props) {
                                                 <Milestone className="-ml-2 size-4 text-amber-500" />
                                             </div>
                                         )}
+                                        <div
+                                            className="absolute top-0 bottom-0 z-10 border-l-2 border-red-500/80"
+                                            style={todayMarker}
+                                        >
+                                            <div className="-ml-8 bg-red-600 px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap text-white">
+                                                Hari ini
+                                            </div>
+                                        </div>
                                         <div
                                             className="absolute top-8 truncate px-2 text-[11px] text-slate-600"
                                             style={barStyle(

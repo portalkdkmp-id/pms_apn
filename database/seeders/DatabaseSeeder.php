@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
             $user->syncRoles([$userData['role']]);
         }
 
-        $this->call(DivisionSeeder::class);
-        $this->call(ProjectDemoSeeder::class);
+        // $this->call(DivisionSeeder::class);
+        // $this->call(ProjectDemoSeeder::class);
     }
 }

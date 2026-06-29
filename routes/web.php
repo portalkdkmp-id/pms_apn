@@ -29,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('project-statuses', ProjectStatusController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('projects', ProjectController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('teams', TeamController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('tasks/pending', [TaskController::class, 'pending'])->name('tasks.pending');
+    Route::post('tasks/{task}/approve', [TaskController::class, 'approve'])->name('tasks.approve');
     Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
 });
 
