@@ -12,7 +12,7 @@ import {
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavMain } from '@/components/nav-main';
+import { NavMain, type NavGroup } from '@/components/nav-main';
 import {
     Sidebar,
     SidebarContent,
@@ -40,66 +40,86 @@ type PermissionNavItem = NavItem & {
     role?: string;
 };
 
-const mainNavItems: PermissionNavItem[] = [
+const navGroups: Array<{ title: string; items: PermissionNavItem[] }> = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'dashboard.view',
+        title: 'Overview',
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+                permission: 'dashboard.view',
+            },
+        ],
     },
     {
-        title: 'Proyek',
-        href: projectsIndex(),
-        icon: PanelsTopLeft,
-        permission: 'project.view',
+        title: 'Project Work',
+        items: [
+            {
+                title: 'Proyek',
+                href: projectsIndex(),
+                icon: PanelsTopLeft,
+                permission: 'project.view',
+            },
+            {
+                title: 'Tugas / Aktivitas',
+                href: tasksIndex(),
+                icon: SquareCheckBig,
+                permission: 'task.view',
+            },
+            {
+                title: 'Flow Aktivitas',
+                href: flowActivitiesIndex(),
+                icon: GitBranch,
+                permission: 'task.view',
+            },
+            {
+                title: 'Gantt Chart',
+                href: ganttChartIndex(),
+                icon: ChartNoAxesGantt,
+                permission: 'task.view',
+            },
+        ],
     },
     {
-        title: 'Tugas / Aktivitas',
-        href: tasksIndex(),
-        icon: SquareCheckBig,
-        permission: 'task.view',
+        title: 'Organization',
+        items: [
+            {
+                title: 'Divisions',
+                href: divisionsIndex(),
+                icon: Building2,
+                permission: 'division.view',
+            },
+            {
+                title: 'Teams',
+                href: teamsIndex(),
+                icon: UsersRound,
+                permission: 'team.view',
+            },
+            {
+                title: 'Users',
+                href: usersIndex(),
+                icon: Users,
+                permission: 'user.view',
+            },
+        ],
     },
     {
-        title: 'Flow Aktivitas',
-        href: flowActivitiesIndex(),
-        icon: GitBranch,
-        permission: 'task.view',
-    },
-    {
-        title: 'Gantt Chart',
-        href: ganttChartIndex(),
-        icon: ChartNoAxesGantt,
-        permission: 'task.view',
-    },
-    {
-        title: 'Users',
-        href: usersIndex(),
-        icon: Users,
-        permission: 'user.view',
-    },
-    {
-        title: 'Divisions',
-        href: divisionsIndex(),
-        icon: Building2,
-        permission: 'division.view',
-    },
-    {
-        title: 'Teams',
-        href: teamsIndex(),
-        icon: UsersRound,
-        permission: 'team.view',
-    },
-    {
-        title: 'Roles & Permissions',
-        href: rolesIndex(),
-        icon: ShieldCheck,
-        permission: 'role.view',
-    },
-    {
-        title: 'Status Tags',
-        href: projectStatusesIndex(),
-        icon: ListTodo,
-        permission: 'project_status.view',
+        title: 'Administration',
+        items: [
+            {
+                title: 'Roles & Permissions',
+                href: rolesIndex(),
+                icon: ShieldCheck,
+                permission: 'role.view',
+            },
+            {
+                title: 'Status Tags',
+                href: projectStatusesIndex(),
+                icon: ListTodo,
+                permission: 'project_status.view',
+            },
+        ],
     },
 ];
 
@@ -107,19 +127,22 @@ export function AppSidebar() {
     const { auth } = usePage<{ auth: Auth }>().props;
     const permissions = new Set(auth.permissions);
     const roles = new Set(auth.roles);
-    const visibleMainNavItems = mainNavItems.filter((item) => {
-        if (item.role) {
-            return roles.has(item.role);
-        }
+    const visibleNavGroups: NavGroup[] = navGroups.map((group) => ({
+        title: group.title,
+        items: group.items.filter((item) => {
+            if (item.role) {
+                return roles.has(item.role);
+            }
 
-        return item.permission ? permissions.has(item.permission) : true;
-    });
+            return item.permission ? permissions.has(item.permission) : true;
+        }),
+    }));
 
     return (
         <Sidebar
             collapsible="icon"
             variant="inset"
-            className="group-data-[variant=inset]:p-3"
+            className="border-r border-sidebar-border group-data-[variant=inset]:p-3"
         >
             <SidebarHeader className="px-3 pt-3 pb-2">
                 <SidebarMenu>
@@ -127,7 +150,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                             size="lg"
                             asChild
-                            className="h-14 rounded-2xl bg-white text-sidebar-foreground shadow-sm ring-1 ring-sidebar-border hover:bg-white"
+                            className="h-13 rounded-sm border border-sidebar-border bg-white text-sidebar-foreground shadow-none hover:bg-smoke-50"
                         >
                             <Link href={dashboard()} prefetch>
                                 <AppLogo />
@@ -138,7 +161,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="px-3 pb-4">
-                <NavMain items={visibleMainNavItems} />
+                <NavMain groups={visibleNavGroups} />
             </SidebarContent>
 
             <SidebarFooter className="px-3 pb-3">

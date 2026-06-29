@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/TaskController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -99,13 +105,14 @@ function TaskFormDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-4xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>
                         {task ? 'Edit task' : 'Tambah task'}
                     </DialogTitle>
                     <DialogDescription>
-                        Kelola parent task, assignee team, status, dan poin KPI.
+                        Pilih project dan PIC dulu, lalu lengkapi KPI dan
+                        tanggal kerja.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -117,7 +124,16 @@ function TaskFormDialog({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <div className="text-sm font-medium text-ink">
+                                        Alur pekerjaan
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Hubungkan task ke project agar progres
+                                        dan KPI ikut terbaca.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="project_id">Project</Label>
                                     <FormSelect
@@ -253,6 +269,18 @@ function TaskFormDialog({
                                     />
                                     <InputError message={errors.kpi_point} />
                                 </div>
+                            </div>
+
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-3">
+                                <div className="sm:col-span-3">
+                                    <div className="text-sm font-medium text-ink">
+                                        Timeline
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Gunakan tanggal penting saja supaya
+                                        daftar task tetap mudah dibaca.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="completed_at">
                                         Completed at
@@ -291,7 +319,19 @@ function TaskFormDialog({
                                     />
                                     <InputError message={errors.due_date} />
                                 </div>
-                                <div className="grid gap-2 sm:col-span-2">
+                            </div>
+
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4">
+                                <div>
+                                    <div className="text-sm font-medium text-ink">
+                                        Detail tambahan
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Dependensi dan attachment hanya diisi
+                                        saat dibutuhkan.
+                                    </p>
+                                </div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="description">
                                         Deskripsi
                                     </Label>
@@ -299,11 +339,11 @@ function TaskFormDialog({
                                         id="description"
                                         name="description"
                                         defaultValue={task?.description ?? ''}
-                                        className="min-h-24 rounded-2xl bg-input/50 px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+                                        className="min-h-24"
                                     />
                                     <InputError message={errors.description} />
                                 </div>
-                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                <div className="grid gap-3 rounded-sm border border-border bg-white p-3">
                                     <div className="flex items-start gap-3">
                                         <input
                                             type="hidden"
@@ -321,7 +361,7 @@ function TaskFormDialog({
                                                     event.target.checked,
                                                 )
                                             }
-                                            className="mt-1 size-4 accent-emerald-600"
+                                            className="mt-1 size-4 accent-ember-orange"
                                         />
                                         <div className="grid flex-1 gap-2">
                                             <Label htmlFor="requires_previous_task_done">
@@ -345,12 +385,14 @@ function TaskFormDialog({
                                                 )}
                                             />
                                             <InputError
-                                                message={errors.previous_task_id}
+                                                message={
+                                                    errors.previous_task_id
+                                                }
                                             />
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid gap-2 sm:col-span-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="attachments">
                                         Upload dokumen / file / image
                                     </Label>
@@ -418,52 +460,58 @@ export default function TasksIndex({
         <>
             <Head title="Tasks" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Tasks</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola task, sub task, assignee, dan KPI point.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="text-sm text-muted-foreground">
-                            KPI visible: {kpiTotal}
-                        </div>
-                        {canCreate && (
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Daily execution"
+                    title="Tasks"
+                    description="Pantau pekerjaan berdasarkan project, PIC, status, due date, dan KPI point yang sedang berjalan."
+                    meta={
+                        <>
+                            <span>{tasks.data.length} task tampil</span>
+                            <span>KPI visible: {kpiTotal}</span>
+                            <span>{projects.length} project</span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
                             <Button onClick={() => setIsCreateOpen(true)}>
                                 <Plus />
-                                Tambah
+                                Task baru
                             </Button>
-                        )}
-                    </div>
-                </div>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {tasks.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada task"
+                            description="Tambahkan task dari project agar pekerjaan bisa ditugaskan dan dipantau."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Task
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Project
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Divisi / PIC
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Status
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         KPI
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Due
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -471,34 +519,37 @@ export default function TasksIndex({
                             </thead>
                             <tbody>
                                 {tasks.data.map((task) => (
-                                    <tr key={task.id} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <div className="font-medium">
+                                    <tr
+                                        key={task.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <div className="font-medium text-ink">
                                                 {task.parent ? '↳ ' : ''}
                                                 {task.title}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {task.parent?.title ??
                                                     `${task.subtasks?.length ?? 0} sub task`}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {task.project
                                                 ? `${task.project.code} - ${task.project.title}`
                                                 : '-'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             <div>
                                                 {task.division?.name ?? '-'}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {task.assignee?.name ?? '-'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
+                                        <td className="px-5 py-4">
+                                            <div className="inline-flex items-center gap-2 rounded-full bg-fog px-3 py-1">
                                                 <span
-                                                    className="size-3 rounded-full"
+                                                    className="size-2.5 rounded-full"
                                                     style={{
                                                         backgroundColor:
                                                             task.status
@@ -509,14 +560,14 @@ export default function TasksIndex({
                                                 {task.status?.name ?? '-'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {task.kpi_point}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {dateValue(task.due_date) || '-'}
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -549,26 +600,10 @@ export default function TasksIndex({
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {tasks.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={tasks.links} />
             </div>
 
             {canCreate && (

@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Download, Edit, Plus, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -9,6 +9,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/UserController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -74,7 +80,16 @@ function UserFormDialog({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <div className="text-sm font-medium text-ink">
+                                        Profil user
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Data dasar untuk identitas dan akses
+                                        aplikasi.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Nama</Label>
                                     <Input
@@ -132,6 +147,18 @@ function UserFormDialog({
                                     />
                                     <InputError message={errors.division_id} />
                                 </div>
+                            </div>
+
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <div className="text-sm font-medium text-ink">
+                                        Keamanan
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Password wajib untuk user baru, opsional
+                                        saat edit.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">Password</Label>
                                     <Input
@@ -155,9 +182,9 @@ function UserFormDialog({
                                 </div>
                             </div>
 
-                            <div className="grid gap-2">
+                            <div className="grid gap-2 rounded-sm border border-border bg-smoke-50 p-4">
                                 <Label>Roles</Label>
-                                <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-2">
+                                <div className="grid gap-2 rounded-sm border border-border bg-white p-3 sm:grid-cols-2">
                                     {roles.map((role) => (
                                         <label
                                             key={role}
@@ -227,64 +254,70 @@ export default function UsersIndex({
         <>
             <Head title="Users" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Users</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola akun, divisi, dan role pengguna aplikasi.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="outline">
-                            <a href={exportMethod.url({ query: filters })}>
-                                <Download />
-                                Export
-                            </a>
-                        </Button>
-                        {canCreate && (
-                            <Form
-                                {...importMethod.form()}
-                                options={{ preserveScroll: true }}
-                                encType="multipart/form-data"
-                            >
-                                {({ processing }) => (
-                                    <label>
-                                        <input
-                                            type="file"
-                                            name="file"
-                                            accept=".csv,text/csv"
-                                            className="sr-only"
-                                            onChange={(event) => {
-                                                event.currentTarget.form?.requestSubmit();
-                                            }}
-                                        />
-                                        <Button
-                                            asChild
-                                            variant="outline"
-                                            disabled={processing}
-                                        >
-                                            <span>
-                                                <Upload />
-                                                Import
-                                            </span>
-                                        </Button>
-                                    </label>
-                                )}
-                            </Form>
-                        )}
-                        {canCreate && (
-                            <Button onClick={() => setIsCreateOpen(true)}>
-                                <Plus />
-                                Tambah User
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Access control"
+                    title="Users"
+                    description="Kelola siapa yang bisa masuk, divisi asalnya, dan role akses yang dipakai di proses project."
+                    meta={
+                        <>
+                            <span>{users.data.length} user tampil</span>
+                            <span>{roles.length} role</span>
+                            <span>{divisions.length} divisi</span>
+                        </>
+                    }
+                    actions={
+                        <>
+                            <Button asChild variant="outline">
+                                <a href={exportMethod.url({ query: filters })}>
+                                    <Download />
+                                    Export
+                                </a>
                             </Button>
-                        )}
-                    </div>
-                </div>
+                            {canCreate && (
+                                <Form
+                                    {...importMethod.form()}
+                                    options={{ preserveScroll: true }}
+                                    encType="multipart/form-data"
+                                >
+                                    {({ processing }) => (
+                                        <label>
+                                            <input
+                                                type="file"
+                                                name="file"
+                                                accept=".csv,text/csv"
+                                                className="sr-only"
+                                                onChange={(event) => {
+                                                    event.currentTarget.form?.requestSubmit();
+                                                }}
+                                            />
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                disabled={processing}
+                                            >
+                                                <span>
+                                                    <Upload />
+                                                    Import
+                                                </span>
+                                            </Button>
+                                        </label>
+                                    )}
+                                </Form>
+                            )}
+                            {canCreate && (
+                                <Button onClick={() => setIsCreateOpen(true)}>
+                                    <Plus />
+                                    Tambah User
+                                </Button>
+                            )}
+                        </>
+                    }
+                />
 
                 <Form
                     {...index.form()}
-                    className="grid gap-3 rounded-lg border p-3 md:grid-cols-[1fr_220px_220px_auto]"
+                    className="grid gap-3 rounded-sm border border-border bg-card p-4 md:grid-cols-[1fr_220px_220px_auto]"
                 >
                     <Input
                         name="search"
@@ -314,25 +347,30 @@ export default function UsersIndex({
                     <Button>Filter</Button>
                 </Form>
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {users.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Tidak ada user"
+                            description="Ubah filter pencarian atau tambahkan user baru."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Nama
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Staff
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Divisi
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Role
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -340,31 +378,34 @@ export default function UsersIndex({
                             </thead>
                             <tbody>
                                 {users.data.map((user) => (
-                                    <tr key={user.id} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <div className="font-medium">
+                                    <tr
+                                        key={user.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <div className="font-medium text-ink">
                                                 {user.name}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {user.email}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             <div>{user.staff_number}</div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {user.phone ?? '-'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {user.division?.name ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {user.roles
                                                 .map((role) => role.name)
                                                 .join(', ') || '-'}
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -397,26 +438,10 @@ export default function UsersIndex({
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {users.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={users.links} />
             </div>
 
             {canCreate && (

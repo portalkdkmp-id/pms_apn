@@ -1,62 +1,73 @@
-# Steep — Style Reference
-> Soft dawn on a marble dashboard
+# Dub — Style Reference
+> engineer's whiteboard with neon sticky tabs
 
 **Theme:** light
 
-Steep is a daylight analytics workspace: an almost achromatic canvas of white and warm-gray surfaces warmed by a single, restrained rust-peach accent and softened by a serif/sans pairing that reads as editorial rather than enterprise. The hero is a peach-lit dawn — a soft radial glow behind a monumental Signifier headline and floating product cards — then the screen settles into a cool marble dashboard where the product does the talking. Signifier carries all display weight (a deliberate contrast against the utilitarian Sohne body), radii are generously large (24px cards feel like ceramic tiles, not windows), and the entire palette treats color as punctuation: chrome is monochrome, data visualization gets the only two chromatic voices (warm rust and cool blue), and one dark fill button does all the asking. The result feels closer to a magazine layout than a SaaS dashboard — calm, editorial, confident.
+Dub is a near-monochrome product surface dressed for marketing: a white canvas, hairline #e5e5e5 borders doing the structural work, black filled CTAs, and three small color tabs (orange, green, violet) that tag product capabilities. The signature is restraint — the page reads like a technical editorial layout, not a glossy SaaS brochure, with a compact density and confident Satoshi display headlines that do the talking. Product UI screenshots are the dominant visual; the chrome around them is deliberately quiet. Color is used as a labeling system, not as atmosphere, which keeps the system extensible: any new feature category slots into the orange/green/violet/pink/yellow palette without redecorating the page.
 
 ## Tokens — Colors
 
 | Name | Value | Token | Role |
 |------|-------|-------|------|
-| Ink | `#17191c` | `--color-ink` | Primary text, filled CTA buttons, dark surfaces — near-black with a whisper of warmth that pairs naturally with the peach accent |
-| Pure White | `#ffffff` | `--color-pure-white` | Page canvas, card surfaces, text on dark buttons |
-| Fog | `#f7f7f8` | `--color-fog` | Secondary canvas and section backgrounds, sidebar surfaces |
-| Ash | `#4c4c4c` | `--color-ash` | Muted body text, secondary strokes |
-| Graphite | `#777b86` | `--color-graphite` | Tertiary text, icon strokes, inactive link borders |
-| Dove | `#a3a6af` | `--color-dove` | Hairline borders, placeholder text, low-emphasis dividers |
-| Slate | `#8b8c8d` | `--color-slate` | Subtle icon and link borders in low-emphasis contexts |
-| Obsidian | `#000000` | `--color-obsidian` | Sharp borders, hairlines, deep strokes — used at very small weights to delineate without color |
-| Rust | `#5d2a1a` | `--color-rust` | Signature warm accent — donut chart strokes, chart line accents, warm data-viz borders, decorative strokes |
-| Apricot Wash | `#fbe1d1` | `--color-apricot-wash` | Soft warm card background for warm-toned data widgets, hero glow tint |
-| Sky Wash | `#d3e3fc` | `--color-sky-wash` | Soft cool card background for cool-toned data widgets and chat surfaces |
+| Paper White | `#ffffff` | `--color-paper-white` | Page background, card surfaces, button text on dark fills |
+| Ink Black | `#0a0a0a` | `--color-ink-black` | Primary headings, body text, and icon fills on light surfaces. Do not promote it to the primary CTA color |
+| Carbon | `#171717` | `--color-carbon` | Secondary text, body emphasis, dark surfaces |
+| Smoke 50 | `#f5f5f5` | `--color-smoke-50` | Elevated surface, secondary button fill, subtle wash backgrounds |
+| Smoke 100 | `#e5e5e5` | `--color-smoke-100` | Default border, hairline dividers, input borders — the structural neutral |
+| Smoke 200 | `#d4d4d4` | `--color-smoke-200` | Stronger borders, card outlines, button borders |
+| Smoke 400 | `#a3a3a3` | `--color-smoke-400` | Disabled state, placeholder text, muted icons |
+| Smoke 500 | `#737373` | `--color-smoke-500` | Body helper text, secondary labels |
+| Smoke 600 | `#525252` | `--color-smoke-600` | Subheadings, body emphasis, icon stroke |
+| Smoke 700 | `#404040` | `--color-smoke-700` | Strong body text, dark icon fills |
+| Ember Orange | `#ea580c` | `--color-ember-orange` | Orange text accent for links, tags, and emphasized short phrases. |
+| Pulse Green | `#16a34a` | `--color-pulse-green` | Green text accent for links, tags, and emphasized short phrases |
+| Arc Violet | `#7c3aed` | `--color-arc-violet` | Affiliate Programs feature tab, violet icon accent — programs/partner signal |
+| Circuit Blue | `#3b82f6` | `--color-circuit-blue` | Link strokes, focus rings, secondary interactive strokes |
+| Mint Wash | `#dcfce7` | `--color-mint-wash` | Gray outline accent for tags, dividers, and focused UI edges. Use as a supporting accent, not as a status color |
+| Slate Ink | `#111827` | `--color-slate-ink` | Secondary body text, navigation labels, and subdued headings. Use as a supporting accent, not as a status color |
+| Primary Action Fill | `#000000` | `--color-primary-action-fill` | High-contrast neutral action fill for primary buttons on light surfaces. Use as the primary filled action background |
 
 ## Tokens — Typography
 
-### Signifier — Display serif used exclusively for hero and section headlines — the only place the brand 'raises its voice'. Its editorial weight against Sohne's utility is the system's most distinctive typographic move · `--font-signifier`
-- **Substitute:** GT Sectra, Tiempos Headline, Source Serif Pro
-- **Weights:** 400
-- **Sizes:** 44px, 64px, 90px
-- **Line height:** 1.10
-- **Letter spacing:** -0.025em at 64-90px, -0.015em at 44px
-- **Role:** Display serif used exclusively for hero and section headlines — the only place the brand 'raises its voice'. Its editorial weight against Sohne's utility is the system's most distinctive typographic move
+### Satoshi — Display headings — hero, section titles. Medium weight only (no bold), tight line-height, and a geometric construction give headlines a calm, technical confidence rather than SaaS shout. Substitute with 'Inter' at 600 or 'General Sans'. · `--font-satoshi`
+- **Substitute:** General Sans
+- **Weights:** 500
+- **Sizes:** 36px, 40px, 48px
+- **Line height:** 1.00, 1.11, 1.15
+- **Letter spacing:** -0.02em
+- **Role:** Display headings — hero, section titles. Medium weight only (no bold), tight line-height, and a geometric construction give headlines a calm, technical confidence rather than SaaS shout. Substitute with 'Inter' at 600 or 'General Sans'.
 
-### Sohne — Body and UI workhorse — navigation, buttons, table cells, form labels, captions. The unusual 430/450/480 micro-weights create a finely graduated hierarchy across data-dense screens without changing font families · `--font-sohne`
-- **Substitute:** Inter, Untitled Sans, Söhne (commercial), General Sans
-- **Weights:** 400, 430, 450, 480, 500
-- **Sizes:** 14px, 15px, 16px, 17px, 18px, 22px, 26px
-- **Line height:** 1.25-1.50
-- **Letter spacing:** -0.009em
-- **Role:** Body and UI workhorse — navigation, buttons, table cells, form labels, captions. The unusual 430/450/480 micro-weights create a finely graduated hierarchy across data-dense screens without changing font families
+### Inter — Body, UI, navigation, subheadings, buttons — the workhorse. Compact 1.4-1.5 line-heights create density without crowding. 600 is reserved for button labels and small-caps-feel emphasis; 500 carries nav and labels; 400 is the body default. · `--font-inter`
+- **Substitute:** Inter
+- **Weights:** 400, 500, 600
+- **Sizes:** 8px, 10px, 11px, 12px, 13px, 14px, 16px, 18px, 20px, 24px, 30px
+- **Line height:** 1.00, 1.33, 1.38, 1.40, 1.43, 1.50, 1.56, 2.15, 2.80
+- **Role:** Body, UI, navigation, subheadings, buttons — the workhorse. Compact 1.4-1.5 line-heights create density without crowding. 600 is reserved for button labels and small-caps-feel emphasis; 500 carries nav and labels; 400 is the body default.
+
+### GeistMono — Monospace UI — URL slugs, API keys, tag chips, code-like inline data. Tightly confined to functional text where variable-width would break alignment. · `--font-geistmono`
+- **Substitute:** JetBrains Mono
+- **Weights:** 400, 500
+- **Sizes:** 12px, 14px, 24px
+- **Line height:** 1.00, 1.33, 1.43
+- **Role:** Monospace UI — URL slugs, API keys, tag chips, code-like inline data. Tightly confined to functional text where variable-width would break alignment.
 
 ### Type Scale
 
 | Role | Size | Line Height | Letter Spacing | Token |
 |------|------|-------------|----------------|-------|
-| caption | 14px | 1.5 | -0.13px | `--text-caption` |
-| body | 16px | 1.38 | -0.14px | `--text-body` |
-| body-lg | 18px | 1.35 | -0.16px | `--text-body-lg` |
-| subheading | 22px | 1.25 | -0.2px | `--text-subheading` |
-| heading-sm | 26px | 1.18 | -0.23px | `--text-heading-sm` |
-| heading | 44px | 1.1 | -0.66px | `--text-heading` |
-| heading-lg | 64px | 1.1 | -1.6px | `--text-heading-lg` |
-| display | 90px | 1.1 | -2.25px | `--text-display` |
+| caption | 12px | 1.5 | — | `--text-caption` |
+| body-sm | 14px | 1.5 | — | `--text-body-sm` |
+| body | 16px | 1.5 | — | `--text-body` |
+| subheading | 20px | 1.4 | — | `--text-subheading` |
+| heading-sm | 24px | 1.4 | — | `--text-heading-sm` |
+| heading | 36px | 1.15 | -0.72px | `--text-heading` |
+| heading-lg | 48px | 1.15 | -0.96px | `--text-heading-lg` |
 
 ## Tokens — Spacing & Shapes
 
 **Base unit:** 4px
 
-**Density:** comfortable
+**Density:** compact
 
 ### Spacing Scale
 
@@ -70,180 +81,183 @@ Steep is a daylight analytics workspace: an almost achromatic canvas of white an
 | 24 | 24px | `--spacing-24` |
 | 28 | 28px | `--spacing-28` |
 | 32 | 32px | `--spacing-32` |
+| 36 | 36px | `--spacing-36` |
 | 40 | 40px | `--spacing-40` |
+| 48 | 48px | `--spacing-48` |
+| 56 | 56px | `--spacing-56` |
 | 64 | 64px | `--spacing-64` |
 | 80 | 80px | `--spacing-80` |
 | 96 | 96px | `--spacing-96` |
-| 124 | 124px | `--spacing-124` |
-| 128 | 128px | `--spacing-128` |
-| 160 | 160px | `--spacing-160` |
+| 112 | 112px | `--spacing-112` |
 
 ### Border Radius
 
 | Element | Value |
 |---------|-------|
-| tags | 9999px |
-| cards | 24px |
-| images | 12px |
-| inputs | 16px |
-| avatars | 9999px |
+| cards | 12px |
+| pills | 9999px |
+| inputs | 8px |
 | buttons | 9999px |
+| featureCards | 16px |
+| announcementBanner | 9999px |
 
 ### Shadows
 
 | Name | Value | Token |
 |------|-------|-------|
-| subtle | `rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1)...` | `--shadow-subtle` |
+| subtle | `rgba(0, 0, 0, 0.05) 0px 1px 2px 0px` | `--shadow-subtle` |
+| sm | `rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0...` | `--shadow-sm` |
+| sm-2 | `rgba(0, 0, 0, 0.2) 0px 2px 6px 0px inset` | `--shadow-sm-2` |
+| subtle-2 | `rgba(0, 0, 0, 0.1) 0px 0px 0px 4px` | `--shadow-subtle-2` |
+| md | `rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1)...` | `--shadow-md` |
+| lg | `rgba(0, 0, 0, 0.09) 0px 20px 20px 0px` | `--shadow-lg` |
+| subtle-3 | `rgb(255, 255, 255) 0px 0px 0px 3px, rgb(0, 0, 0) 0px 0px ...` | `--shadow-subtle-3` |
 
 ### Layout
 
 - **Page max-width:** 1200px
-- **Section gap:** 80px
-- **Card padding:** 20-24px
-- **Element gap:** 8px
+- **Section gap:** 64px
+- **Card padding:** 16px
+- **Element gap:** 16px
 
 ## Components
 
-### Filled Dark CTA
-**Role:** Primary action button
+### Primary CTA Button
+**Role:** Main conversion action — 'Start for free', 'Sign up'
 
-Pill shape (9999px radius), Ink (#17191c) background, white text at Sohne 15px weight 450, 8px 20px padding, -0.009em tracking. The only filled button in the system; one per screen maximum.
+Filled #0a0a0a background, #ffffff text, 9999px pill radius, 16px horizontal × 8-10px vertical padding. Inter 14px weight 500. Optional subtle 1px 2px shadow at rgba(0,0,0,0.05). The black fill on white is the entire brand voice for actions — no blue CTA, no gradient.
 
-### Text Link Button
-**Role:** Secondary action
+### Secondary Ghost Button
+**Role:** Companion action — 'Get a demo', 'Learn more'
 
-Ink (#17191c) text, Sohne 15px weight 450, no border or background, paired horizontally with the filled CTA. Sits immediately to the right of the primary button.
+White or transparent fill, #0a0a0a text, 1px #d4d4d4 border, 9999px pill radius, 16px × 8-10px padding. Inter 14px weight 500. Always paired with a primary button in the same row.
 
-### Top Navigation Bar
-**Role:** Global navigation
+### Navigation Link
+**Role:** Top nav items with dropdown indicators
 
-White background, no shadow, Ink logo at left, horizontal nav links (Product, Resources, Customers, Pricing) at Sohne 15px in Ink, ghost text-link and filled CTA grouped at right. Sticky, 64-72px tall, hairline Dove bottom border optional.
+Inter 14px weight 500, #0a0a0a text, no underline. Caret chevron in #737373. Active/hover state lifts to weight 600 or adds #0a0a0a underline. Nav row sits in a white bar with no border.
 
-### Product Dashboard Card
-**Role:** Data widget container
+### Feature Category Pill
+**Role:** Tag for the three product capabilities (Short Links, Conversion Analytics, Affiliate Programs)
 
-White surface, 24px radius, 20-24px internal padding, card shadow (1px ink-tinted border-shadow + soft 20px/25px drop). Houses a single data visualization: bar chart, donut, line chart, or table.
+9999px radius, 6px vertical × 12px horizontal padding. Three variants by capability: orange (#ea580c) for Short Links, green (#16a34a) for Conversion Analytics, violet (#7c3aed) for Affiliate Programs. White background with a 4-6px solid-color square icon prefix. Inter 12-13px weight 500.
 
-### Warm Data Card
-**Role:** Chart card with warm accent
+### Announcement Banner
+**Role:** Top-of-page news strip ('Celebrating $10M partner payouts')
 
-Apricot Wash (#fbe1d1) background, 24px radius, 20-24px padding. Contains warm-toned visualizations (donut with Rust stroke, line chart with Rust fill). Used sparingly to warm the data grid.
+White background, #e5e5e5 border, 9999px pill radius, 6px × 16px padding, inline text + 'Read more' link. Sits centered above the hero, separated by generous whitespace.
 
-### Cool Data Card
-**Role:** Chart card with cool accent
+### Product Screenshot Card
+**Role:** Hero visual and feature imagery
 
-Sky Wash (#d3e3fc) background, 24px radius, 20-24px padding. Contains cool-toned visualizations (bar charts in blue tones, line charts in blue).
+12-16px radius, 1px #e5e5e5 border, no shadow or a very soft rgba(0,0,0,0.05) 1px 2px. White surface framing the app UI. The screenshot itself contains the dense product chrome — the card around it is intentionally quiet.
 
-### Sidebar Navigation
-**Role:** Product app navigation
+### Customer Logo Cell
+**Role:** Social proof logo grid
 
-Fog (#f7f7f8) background, ~240px wide, no border. Logo at top, primary nav items with 16px icons + 15px Sohne text in Ink, grouped sections (Teams with color-dot indicators, Favorites). Active item shows subtle background tint.
+Plain 60-80px tall image, no border, no background. Arranged in a 5×2 grid with generous row/column gaps. 'CASE STUDY' caption in Inter 10-11px uppercase #737373 below some logos.
 
-### Chat Input Field
-**Role:** AI query input
+### Inline Highlight Pill
+**Role:** Colored word-level emphasis in body copy
 
-White surface, 16-20px radius, 16px 20px padding, subtle 1px Dove border, 15px Sohne placeholder in Graphite. Black circular send button (40px, 9999px radius) anchored at right.
+Colored background (#ea580c at ~10% opacity, #16a34a at ~15%, or #7c3aed at ~10%) with matching saturated text color, 4px radius, 2px vertical × 6px horizontal padding. Used to make 'short links', 'real-time analytics', and 'affiliate programs' pop within paragraphs.
 
-### AI Response Card
-**Role:** Chat response with chart
+### Input Field
+**Role:** Text input in product UI
 
-White surface, 24px radius, soft shadow, contains: light blue chart card (Sky Wash, 16px radius) with line chart in two colors (Rust for 'last month', blue for current), followed by H3 heading and body text in Ink and Ash.
+8px radius, 1px #d4d4d4 border, white fill, Inter 14px weight 400 text, 10-12px vertical × 12-16px horizontal padding. Focus state shifts border to #0a0a0a with a 4px rgba(0,0,0,0.1) outer ring.
 
-### Avatar Badge
-**Role:** User identity marker
+### Tag Chip
+**Role:** Small inline metadata tag in product UI
 
-32-40px circle, 9999px radius, colored pastel background (mint, sky, peach), 2-letter monogram in Ink at 13px weight 500. Floats over chart cards as annotation callouts.
+9999px radius, #16a34a or #ea580c text on a tinted background (#dcfce7 or similar ~10% opacity), 4px × 8px padding, Inter 12px weight 500.
 
-### Region Stats Card
-**Role:** Compact data table widget
+### Feature Highlight Card
+**Role:** Section-level feature illustration with a tilted/scaled product crop
 
-White surface, 24px radius, 20px padding. Title in Sohne 15px weight 500 Ink, rows with region name in Graphite at 14px and right-aligned count in Ink at 14px weight 480. 12px row gap.
+No explicit card chrome — the product crop sits on the white canvas with a subtle #e5e5e5 outline. Often accompanied by a 64-80px outlined icon in #737373. Cards in grids use 16px column gap.
 
-### Floating Hero Card
-**Role:** Decorative product preview in hero
+### Dark Section Banner
+**Role:** Inline callout strip ('Short Links — Learn more')
 
-White surface, 24px radius, soft elevation shadow, positioned absolutely around the hero headline. Casts a single signature shadow: 1px ink-tinted border + 20px/25px soft drop + 8px/10px micro drop. Anchors with an avatar badge on one corner.
-
-### Stat Card with Delta
-**Role:** KPI display
-
-White surface, 24px radius, 20px padding. Large Sohne number (26-44px Signifier or large Sohne 480) in Ink, small caption label in Graphite 13px, green/red delta indicator with arrow at 12px.
+Dark #171717 or #262626 background, #ffffff text, 12-16px radius, inline icon in a #404040 rounded square, 'Learn more' button in white pill at the right. Used to break the monochrome rhythm and direct attention to a product pillar.
 
 ## Do's and Don'ts
 
 ### Do
-- Use Signifier exclusively at 44-90px for hero and section headlines; never below 40px
-- Set filled CTA radius to 9999px with Ink (#17191c) background — one per viewport, paired right with a text-link secondary
-- Use 24px radius for all content cards, 20px for inner padding, 12px for product image crops
-- Reserve the warm gradient glow for hero contexts only; product UI stays on white/Fog canvas
-- Apply Apricot Wash (#fbe1d1) and Sky Wash (#d3e3fc) as card backgrounds for data widgets, not as decorative washes
-- Set letter-spacing to -0.009em on all Sohne text and -0.025em on Signifier 64px+
-- Build the signature card shadow as a three-layer stack: 1px ink-tinted border + 20px/25px drop + 8px/10px micro drop
+- Use 9999px radius for all interactive elements (buttons, pills, tags, announcement banners) and 8-16px radius for cards and inputs
+- Default to #0a0a0a filled buttons on #ffffff canvas for primary actions — never use blue or gradient as the CTA color
+- Use #e5e5e5 for all hairline borders and dividers; reach for #d4d4d4 only when stronger definition is needed
+- Use Satoshi weight 500 for all display headings; do not bold it
+- Use the three accent colors (orange #ea580c, green #16a34a, violet #7c3aed) as a feature-category labeling system — one per capability, never decorative
+- Apply 10-15% opacity tints of accent colors for inline highlight pills within body copy, keeping the saturated hex for text
+- Use GeistMono for any URL slug, API key, code-like identifier, or alignment-sensitive inline data
 
 ### Don't
-- Don't use Signifier for body copy, labels, navigation, or anything below 40px
-- Don't introduce saturated blues, greens, or reds for UI chrome — the only chromatic voices are Rust and the two pastel washes
-- Don't use sharp corners below 12px; the system depends on generous radii to feel soft
-- Don't place the warm radial gradient anywhere outside the hero section
-- Don't add borders heavier than 1px; delineation happens through surface tints and radii
-- Don't use the dark Ink fill for anything other than the primary CTA and dark text
-- Don't exceed one filled button per screen; secondary actions are text links, not ghost buttons
+- Do not introduce a chromatic primary action color — the system is monochrome with accent labels, not a colored CTA system
+- Do not use more than one accent color in a single component — feature pills are single-hue
+- Do not apply heavy shadows; if elevation is needed, stay at rgba(0,0,0,0.05) 1px 2px or rgba(0,0,0,0.1) 4px 6px
+- Do not use bold weights (700+) for headings; Satoshi's confidence comes from its medium weight, not weight escalation
+- Do not mix Inter and Satoshi in the same text block — Satoshi is for display only
+- Do not add gradient buttons, gradient text, or glassmorphism — the aesthetic is flat editorial, not dimensional
+- Do not use the #dcfce7 green wash outside of success/callout contexts — it is semantic, not decorative
 
 ## Surfaces
 
 | Level | Name | Value | Purpose |
 |-------|------|-------|---------|
-| 1 | Canvas | `#ffffff` | Page background, hero backdrop |
-| 2 | Fog | `#f7f7f8` | Section backgrounds, sidebar canvas, product shell |
-| 3 | Card | `#ffffff` | Elevated content cards with 24px radius |
-| 4 | Warm Tint | `#fbe1d1` | Data visualization cards with warm-toned charts |
-| 5 | Cool Tint | `#d3e3fc` | Data visualization cards with cool-toned charts, chat bubble surfaces |
-| 6 | Ink | `#17191c` | Dark surface for filled CTAs, high-contrast blocks |
+| 0 | Page Canvas | `#ffffff` | Full page background, default surface for all sections |
+| 1 | Card Surface | `#ffffff` | Product screenshots, feature cards, logo grid cells — same as canvas, separated only by hairline borders |
+| 2 | Elevated Wash | `#f5f5f5` | Secondary button fill, subtle background variation, code snippet backgrounds |
+| 3 | Tinted Callout | `#dcfce7` | Green-tinted highlight band, badge background, feature accent panel |
 
 ## Elevation
 
-- **Floating product card:** `rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px`
+- **Primary CTA Button:** `rgba(0, 0, 0, 0.05) 0px 1px 2px 0px`
+- **Product Screenshot Card:** `rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px`
+- **Input Focus Ring:** `rgba(0, 0, 0, 0.1) 0px 0px 0px 4px`
+- **Elevated Card (hover/active):** `rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px`
 
 ## Imagery
 
-The site uses no photography or illustration in the marketing chrome — visual interest is generated entirely by floating product UI cards (data widgets, chat inputs, stat blocks) that orbit the hero headline. These cards are rendered as crisp white surfaces with real product content (bar charts, donut charts, line graphs, avatars) rather than abstract decoration. The product screenshots inside the app are clean white dashboards on Fog canvas with sidebar navigation. Iconography is outline-style at ~16-20px, monochrome Ink or Graphite, with a 1.5-2px stroke weight that matches the hairline border language. Avatar badges use pastel backgrounds (mint, sky, peach) as the only spot colors in the UI.
+The site is product-screenshot-driven. The hero and feature sections are anchored by actual app UI captures — dashboard panels, link editor with QR code, analytics tables — framed on white cards with hairline borders. There is no lifestyle photography, no stock imagery, and no decorative illustration. The product IS the imagery. Outside of screenshots, icons are thin-stroke outlined glyphs in #525252-#737373, used small (16-24px) and functionally. The only chromatic graphics are the three feature-category square icons (orange, green, violet) that act as a visual key for product capabilities.
 
 ## Layout
 
-Marketing pages use a max-width ~1200px centered column with the hero spanning full viewport width. The hero centers a large Signifier headline (one or two lines) over a soft warm radial gradient, with subtitle and CTA group centered below, surrounded by four floating product cards positioned at corners and edges. Below the hero, sections alternate between white and Fog (#f7f7f8) bands with 80px vertical gaps. Content blocks typically use a 2-column split (text + visual) or a 3-column card grid. The product app uses a fixed left sidebar (240px) with a fluid content area containing responsive card grids (3-4 columns of 24px-radius widgets). Navigation is a single sticky top bar — no mega-menus, no sidebar marketing nav.
+Page layout is max-width 1200px centered with generous outer padding. The hero is centered text-over-product: headline → subhead → two-button row (primary + ghost) → product screenshot card below. Sections alternate between centered single-column text blocks and 2-column text+image splits, separated by 64-80px vertical gaps. Customer logos sit in a 5-column grid. Feature grids use 3 columns at desktop. The nav is a single horizontal bar — logo left, product/solutions/resources dropdowns center, login + sign-up right — with no sticky behavior indicated. Dark section banners (near-black #171717) appear as full-width strips to break the monochrome rhythm. Background sections alternate between pure white and very subtle off-white washes.
 
 ## Agent Prompt Guide
 
-**Quick Color Reference**
-- text: #17191c (Ink)
-- background: #ffffff (Pure White)
-- surface: #f7f7f8 (Fog)
-- border: #a3a6af (Dove) / #777b86 (Graphite)
-- accent: #5d2a1a (Rust)
-- primary action: #17191c (filled action)
+## Quick Color Reference
+- text primary: #0a0a0a
+- text muted: #737373
+- text helper: #525252
+- background: #ffffff
+- surface elevated: #f5f5f5
+- border default: #e5e5e5
+- primary action: #000000 (filled action)
+- accent orange (Short Links): #ea580c
+- accent green (Analytics): #16a34a
+- accent violet (Programs): #7c3aed
 
-**Example Component Prompts**
-1. *Hero section:* white canvas with soft radial gradient glow in #fbe1d1 at 30% opacity, centered. Headline at 64px Signifier weight 400, #17191c, letter-spacing -1.6px. Subtitle at 18px Sohne weight 400, #4c4c4c. Filled CTA (Ink #17191c, white text, 9999px radius, 8px 20px padding) paired right with a text-link secondary.
+## Example Component Prompts
 
-2. *Dashboard card grid:* Fog (#f7f7f8) canvas, 3-column grid of white cards (24px radius, 20px padding, signature three-layer shadow). One card uses Apricot Wash background with a Rust-stroke donut chart; another uses Sky Wash with a blue bar chart.
+1. Create a Primary Action Button: #000000 background, #ffffff text, 9999px radius, compact pill padding. Use this filled treatment for the main CTA.
 
-3. *AI response card:* white surface, 24px radius, signature shadow. Inner chart card with Sky Wash background (16px radius) containing a two-line chart — Rust (#5d2a1a) for previous period, #4a90e2 blue for current. Followed by 26px Sohne weight 500 Ink heading and 16px Sohne weight 400 Ash body text with blue inline links.
+2. **Create a feature category pill**: 9999px radius, white background, 1px #e5e5e5 border, 4px × 10px padding. Prefix with a 4px solid-color square icon (#ea580c for Short Links, #16a34a for Analytics, #7c3aed for Programs). Label text Inter 13px weight 500 #0a0a0a.
 
-4. *Sidebar navigation:* Fog (#f7f7f8) background, 240px wide, no border. Logo at top, nav items with 16px outline icons + 15px Sohne 450 in Ink, grouped under section labels (13px Sohne 500 in Graphite, uppercase, 0.5px tracking). Active item shows #ffffff background with 12px radius.
+3. **Create an inline highlight pill in body copy**: 'short links' text wrapped in a span with #ea580c at 10% opacity background, #ea580c text, 4px radius, 2px × 6px padding, Inter 16px weight 500. The pill is inline, not a block.
 
-5. *Region stats card:* white surface, 24px radius, 20px padding. Title 'Region' at 15px Sohne 500 Ink. Rows at 14px Sohne — region name in #777b86, right-aligned count in Ink weight 480, separated by 12px vertical gap with no visible dividers.
+4. **Create a customer logo grid**: 5-column CSS grid, 48px row gap, 32px column gap, centered. Each cell holds a customer logo (grayscale, ~32px tall) with optional 'CASE STUDY' caption below in Inter 10px uppercase #737373, letter-spacing 0.05em. No card chrome, no borders.
 
-## Typographic Voice
-
-The Signifier/Sohne pairing is the brand's most identifiable decision. Signifier is the editorial voice — used only when the page is making a statement (hero headline, section openers, possibly pull quotes). Sohne is the working voice for everything else, including the rare subheading larger than 22px. The micro-weight range (430, 450, 480) within Sohne creates a granular hierarchy that replaces the usual bold/regular binary — a 450 weight table header reads as 'important' without being heavy. Never bold Sohne; use weight 480 or 500 instead. Never set Signifier below 40px — it loses its editorial authority and becomes an awkward novelty.
+5. **Create a dark section banner**: full-width #171717 background, max-width 1200px inner container, 12px radius (or no radius if edge-to-edge), 24px vertical padding. Left: 40px square icon container in #262626 with white outline icon. Center: white text 'Short Links' in Inter 16px weight 600, #a3a3a3 description below. Right: 'Learn more' white pill button (1px #404040 border, white text, 9999px radius, 12px × 20px padding).
 
 ## Similar Brands
 
-- **Linear** — Same editorial restraint: single dark CTA pill, generous 24px+ card radii, achromatic canvas with a single restrained accent, and a dual-typeface system that pairs a distinctive display face with a utility sans
-- **Vercel** — Matches the floating-product-cards-around-headline hero pattern, monochrome chrome with warm gradient glow, and the same 'marble dashboard' product UI with sidebar + card grid
-- **Stripe** — Same editorial typography pairing (serif display + sans body), generous spacing, and the use of soft pastel tints as card backgrounds for data visualization
-- **Raycast** — Shares the pill-button + monochrome chrome + generous radii language, though Raycast is darker and more compact; Steep is the daylight equivalent
-- **Height** — Same achromatic productivity-tool palette with a single warm accent, large radii, and the editorial-light feel of a tool that treats data as content rather than chrome
+- **Vercel** — Same monochrome-first approach with black filled CTAs, hairline borders, and minimal elevation. Vercel also uses a single display font at medium weight for headlines and lets product UI carry the page.
+- **Linear** — Identical restraint — white canvas, compact density, Inter for UI, pill-shaped controls, and product screenshots as hero visuals. Both sites treat accent color as a labeling tool rather than atmosphere.
+- **Cal.com** — Same open-source SaaS layout grammar: centered hero with single headline, product screenshot below, 2-column feature splits, and 5-column customer logo grid. Both use small color-coded category tags as a capability key.
+- **Plausible Analytics** — Shares the technical-editorial feel — black CTAs on white, clean Satoshi/Inter pairing, compact 4-8px element gaps, and a near-monochrome palette with a single accent appearing only as functional punctuation.
 
 ## Quick Start
 
@@ -252,54 +266,51 @@ The Signifier/Sohne pairing is the brand's most identifiable decision. Signifier
 ```css
 :root {
   /* Colors */
-  --color-ink: #17191c;
-  --color-pure-white: #ffffff;
-  --color-fog: #f7f7f8;
-  --color-ash: #4c4c4c;
-  --color-graphite: #777b86;
-  --color-dove: #a3a6af;
-  --color-slate: #8b8c8d;
-  --color-obsidian: #000000;
-  --color-rust: #5d2a1a;
-  --color-apricot-wash: #fbe1d1;
-  --color-sky-wash: #d3e3fc;
+  --color-paper-white: #ffffff;
+  --color-ink-black: #0a0a0a;
+  --color-carbon: #171717;
+  --color-smoke-50: #f5f5f5;
+  --color-smoke-100: #e5e5e5;
+  --color-smoke-200: #d4d4d4;
+  --color-smoke-400: #a3a3a3;
+  --color-smoke-500: #737373;
+  --color-smoke-600: #525252;
+  --color-smoke-700: #404040;
+  --color-ember-orange: #ea580c;
+  --color-pulse-green: #16a34a;
+  --color-arc-violet: #7c3aed;
+  --color-circuit-blue: #3b82f6;
+  --color-mint-wash: #dcfce7;
+  --color-slate-ink: #111827;
+  --color-primary-action-fill: #000000;
 
   /* Typography — Font Families */
-  --font-signifier: 'Signifier', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-sohne: 'Sohne', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-satoshi: 'Satoshi', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-geistmono: 'GeistMono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Typography — Scale */
-  --text-caption: 14px;
+  --text-caption: 12px;
   --leading-caption: 1.5;
-  --tracking-caption: -0.13px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
   --text-body: 16px;
-  --leading-body: 1.38;
-  --tracking-body: -0.14px;
-  --text-body-lg: 18px;
-  --leading-body-lg: 1.35;
-  --tracking-body-lg: -0.16px;
-  --text-subheading: 22px;
-  --leading-subheading: 1.25;
-  --tracking-subheading: -0.2px;
-  --text-heading-sm: 26px;
-  --leading-heading-sm: 1.18;
-  --tracking-heading-sm: -0.23px;
-  --text-heading: 44px;
-  --leading-heading: 1.1;
-  --tracking-heading: -0.66px;
-  --text-heading-lg: 64px;
-  --leading-heading-lg: 1.1;
-  --tracking-heading-lg: -1.6px;
-  --text-display: 90px;
-  --leading-display: 1.1;
-  --tracking-display: -2.25px;
+  --leading-body: 1.5;
+  --text-subheading: 20px;
+  --leading-subheading: 1.4;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.4;
+  --text-heading: 36px;
+  --leading-heading: 1.15;
+  --tracking-heading: -0.72px;
+  --text-heading-lg: 48px;
+  --leading-heading-lg: 1.15;
+  --tracking-heading-lg: -0.96px;
 
   /* Typography — Weights */
   --font-weight-regular: 400;
-  --font-weight-w430: 430;
-  --font-weight-w450: 450;
-  --font-weight-w480: 480;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
 
   /* Spacing */
   --spacing-unit: 4px;
@@ -311,45 +322,50 @@ The Signifier/Sohne pairing is the brand's most identifiable decision. Signifier
   --spacing-24: 24px;
   --spacing-28: 28px;
   --spacing-32: 32px;
+  --spacing-36: 36px;
   --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
   --spacing-64: 64px;
   --spacing-80: 80px;
   --spacing-96: 96px;
-  --spacing-124: 124px;
-  --spacing-128: 128px;
-  --spacing-160: 160px;
+  --spacing-112: 112px;
 
   /* Layout */
   --page-max-width: 1200px;
-  --section-gap: 80px;
-  --card-padding: 20-24px;
-  --element-gap: 8px;
+  --section-gap: 64px;
+  --card-padding: 16px;
+  --element-gap: 16px;
 
   /* Border Radius */
-  --radius-sm: 0.01px;
+  --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-2xl-2: 20px;
-  --radius-3xl: 24px;
+  --radius-full: 9999px;
 
   /* Named Radii */
-  --radius-tags: 9999px;
-  --radius-cards: 24px;
-  --radius-images: 12px;
-  --radius-inputs: 16px;
-  --radius-avatars: 9999px;
+  --radius-cards: 12px;
+  --radius-pills: 9999px;
+  --radius-inputs: 8px;
   --radius-buttons: 9999px;
+  --radius-featurecards: 16px;
+  --radius-announcementbanner: 9999px;
 
   /* Shadows */
-  --shadow-subtle: rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+  --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  --shadow-sm: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+  --shadow-sm-2: rgba(0, 0, 0, 0.2) 0px 2px 6px 0px inset;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.1) 0px 0px 0px 4px;
+  --shadow-md: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px;
+  --shadow-lg: rgba(0, 0, 0, 0.09) 0px 20px 20px 0px;
+  --shadow-subtle-3: rgb(255, 255, 255) 0px 0px 0px 3px, rgb(0, 0, 0) 0px 0px 0px 4px;
 
   /* Surfaces */
-  --surface-canvas: #ffffff;
-  --surface-fog: #f7f7f8;
-  --surface-card: #ffffff;
-  --surface-warm-tint: #fbe1d1;
-  --surface-cool-tint: #d3e3fc;
-  --surface-ink: #17191c;
+  --surface-page-canvas: #ffffff;
+  --surface-card-surface: #ffffff;
+  --surface-elevated-wash: #f5f5f5;
+  --surface-tinted-callout: #dcfce7;
 }
 ```
 
@@ -358,47 +374,46 @@ The Signifier/Sohne pairing is the brand's most identifiable decision. Signifier
 ```css
 @theme {
   /* Colors */
-  --color-ink: #17191c;
-  --color-pure-white: #ffffff;
-  --color-fog: #f7f7f8;
-  --color-ash: #4c4c4c;
-  --color-graphite: #777b86;
-  --color-dove: #a3a6af;
-  --color-slate: #8b8c8d;
-  --color-obsidian: #000000;
-  --color-rust: #5d2a1a;
-  --color-apricot-wash: #fbe1d1;
-  --color-sky-wash: #d3e3fc;
+  --color-paper-white: #ffffff;
+  --color-ink-black: #0a0a0a;
+  --color-carbon: #171717;
+  --color-smoke-50: #f5f5f5;
+  --color-smoke-100: #e5e5e5;
+  --color-smoke-200: #d4d4d4;
+  --color-smoke-400: #a3a3a3;
+  --color-smoke-500: #737373;
+  --color-smoke-600: #525252;
+  --color-smoke-700: #404040;
+  --color-ember-orange: #ea580c;
+  --color-pulse-green: #16a34a;
+  --color-arc-violet: #7c3aed;
+  --color-circuit-blue: #3b82f6;
+  --color-mint-wash: #dcfce7;
+  --color-slate-ink: #111827;
+  --color-primary-action-fill: #000000;
 
   /* Typography */
-  --font-signifier: 'Signifier', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-sohne: 'Sohne', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-satoshi: 'Satoshi', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-geistmono: 'GeistMono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Typography — Scale */
-  --text-caption: 14px;
+  --text-caption: 12px;
   --leading-caption: 1.5;
-  --tracking-caption: -0.13px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
   --text-body: 16px;
-  --leading-body: 1.38;
-  --tracking-body: -0.14px;
-  --text-body-lg: 18px;
-  --leading-body-lg: 1.35;
-  --tracking-body-lg: -0.16px;
-  --text-subheading: 22px;
-  --leading-subheading: 1.25;
-  --tracking-subheading: -0.2px;
-  --text-heading-sm: 26px;
-  --leading-heading-sm: 1.18;
-  --tracking-heading-sm: -0.23px;
-  --text-heading: 44px;
-  --leading-heading: 1.1;
-  --tracking-heading: -0.66px;
-  --text-heading-lg: 64px;
-  --leading-heading-lg: 1.1;
-  --tracking-heading-lg: -1.6px;
-  --text-display: 90px;
-  --leading-display: 1.1;
-  --tracking-display: -2.25px;
+  --leading-body: 1.5;
+  --text-subheading: 20px;
+  --leading-subheading: 1.4;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.4;
+  --text-heading: 36px;
+  --leading-heading: 1.15;
+  --tracking-heading: -0.72px;
+  --text-heading-lg: 48px;
+  --leading-heading-lg: 1.15;
+  --tracking-heading-lg: -0.96px;
 
   /* Spacing */
   --spacing-4: 4px;
@@ -409,22 +424,29 @@ The Signifier/Sohne pairing is the brand's most identifiable decision. Signifier
   --spacing-24: 24px;
   --spacing-28: 28px;
   --spacing-32: 32px;
+  --spacing-36: 36px;
   --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
   --spacing-64: 64px;
   --spacing-80: 80px;
   --spacing-96: 96px;
-  --spacing-124: 124px;
-  --spacing-128: 128px;
-  --spacing-160: 160px;
+  --spacing-112: 112px;
 
   /* Border Radius */
-  --radius-sm: 0.01px;
+  --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-2xl-2: 20px;
-  --radius-3xl: 24px;
+  --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-subtle: rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+  --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  --shadow-sm: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+  --shadow-sm-2: rgba(0, 0, 0, 0.2) 0px 2px 6px 0px inset;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.1) 0px 0px 0px 4px;
+  --shadow-md: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px;
+  --shadow-lg: rgba(0, 0, 0, 0.09) 0px 20px 20px 0px;
+  --shadow-subtle-3: rgb(255, 255, 255) 0px 0px 0px 3px, rgb(0, 0, 0) 0px 0px 0px 4px;
 }
 ```

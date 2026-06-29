@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/DivisionController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -148,41 +154,51 @@ export default function DivisionsIndex({ divisions, users }: Props) {
         <>
             <Head title="Divisions" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Divisions</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola divisi, manager, dan relasi user.
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus />
-                            Tambah
-                        </Button>
-                    )}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Organization"
+                    title="Divisions"
+                    description="Kelola divisi, manager, dan relasi user yang menjadi dasar assignment project dan task."
+                    meta={
+                        <>
+                            <span>{divisions.data.length} divisi tampil</span>
+                            <span>{users.length} user tersedia</span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Divisi baru
+                            </Button>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {divisions.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada divisi"
+                            description="Tambahkan divisi untuk mengelompokkan user dan pekerjaan."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Nama
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Slug
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Manager
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Deskripsi
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -190,21 +206,24 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                             </thead>
                             <tbody>
                                 {divisions.data.map((division) => (
-                                    <tr key={division.id} className="border-t">
-                                        <td className="px-4 py-3 font-medium">
+                                    <tr
+                                        key={division.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4 font-medium text-ink">
                                             {division.name}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4 font-mono text-xs text-graphite">
                                             {division.slug}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {division.manager?.name ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
+                                        <td className="px-5 py-4 text-graphite">
                                             {division.description ?? '-'}
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -239,26 +258,10 @@ export default function DivisionsIndex({ divisions, users }: Props) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {divisions.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={divisions.links} />
             </div>
 
             {canCreate && (

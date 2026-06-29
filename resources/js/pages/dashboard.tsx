@@ -8,6 +8,7 @@ import {
     Target,
     Users,
 } from 'lucide-react';
+import { PageHeader } from '@/components/app-page';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -102,9 +103,9 @@ function StatCard({
 }) {
     const tones = {
         ink: 'bg-ink text-pure-white ring-ink/10',
-        warm: 'bg-apricot-wash text-rust ring-rust/10',
-        cool: 'bg-sky-wash text-ink ring-ink/10',
-        neutral: 'bg-fog text-graphite ring-dove/35',
+        warm: 'bg-orange-50 text-ember-orange ring-orange-200',
+        cool: 'bg-blue-50 text-circuit-blue ring-blue-200',
+        neutral: 'bg-smoke-50 text-graphite ring-smoke-200',
     };
 
     return (
@@ -114,18 +115,18 @@ function StatCard({
                     <CardDescription className="text-xs font-medium tracking-[0.12em] text-graphite uppercase">
                         {title}
                     </CardDescription>
-                    <CardTitle className="mt-2 text-3xl font-medium text-ink">
+                    <CardTitle className="mt-2 text-3xl font-medium tracking-[-0.02em] text-ink">
                         {value}
                     </CardTitle>
                 </div>
                 <div
-                    className={`flex size-11 items-center justify-center rounded-xl ring-1 ${tones[tone]}`}
+                    className={`flex size-11 items-center justify-center rounded-sm ring-1 ${tones[tone]}`}
                 >
                     <Icon className="size-5" />
                 </div>
             </CardHeader>
             <CardContent className="flex items-center gap-2 text-xs text-graphite">
-                <ArrowUpRight className="size-3.5 text-rust" />
+                <ArrowUpRight className="size-3.5 text-ember-orange" />
                 <span>{description}</span>
             </CardContent>
         </Card>
@@ -166,11 +167,11 @@ function BarChart({ title, items }: { title: string; items: ChartItem[] }) {
                             </div>
                             <div className="h-2 overflow-hidden rounded-full bg-fog">
                                 <div
-                                    className="h-full rounded-full bg-rust"
+                                    className="h-full rounded-full bg-ember-orange"
                                     style={{
                                         width: `${Math.max((item.value / max) * 100, item.value > 0 ? 6 : 0)}%`,
                                         backgroundColor:
-                                            item.color ?? '#5d2a1a',
+                                            item.color ?? '#ea580c',
                                     }}
                                 />
                             </div>
@@ -217,22 +218,11 @@ export default function Dashboard({
         <>
             <Head title="Dashboard" />
 
-            <div className="flex h-full flex-1 flex-col gap-5 overflow-x-auto bg-fog p-4 md:p-6">
-                <div className="relative overflow-hidden rounded-[28px] bg-card p-5 shadow-[var(--shadow-subtle)] md:p-6">
-                    <div className="absolute inset-0 hidden bg-[radial-gradient(circle_at_82%_18%,rgba(251,225,209,0.72),transparent_26rem)] md:block" />
-                    <div className="relative flex flex-wrap items-end justify-between gap-4">
-                        <div>
-                            <Badge className="mb-3 bg-apricot-wash text-rust hover:bg-apricot-wash">
-                                PMS APN Workspace
-                            </Badge>
-                            <h1 className="font-heading text-[44px] leading-[1.1] font-normal tracking-[-0.015em] text-ink">
-                                Dashboard
-                            </h1>
-                            <p className="mt-2 max-w-2xl text-base text-ash">
-                                Ringkasan performa PMS, project, team, task, dan
-                                KPI dalam satu tampilan kerja.
-                            </p>
-                        </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    title="Dashboard"
+                    description="Ringkasan performa PMS, project, team, task, dan KPI dalam satu tampilan kerja."
+                    actions={
                         <Badge
                             className="h-8 bg-fog px-3 text-ink hover:bg-fog"
                             variant={
@@ -243,8 +233,8 @@ export default function Dashboard({
                         >
                             {stats.overdueTasks} task overdue
                         </Badge>
-                    </div>
-                </div>
+                    }
+                />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <StatCard
@@ -296,7 +286,7 @@ export default function Dashboard({
                                 </div>
                                 <div className="h-3 overflow-hidden rounded-full bg-fog">
                                     <div
-                                        className="h-full rounded-full bg-rust"
+                                        className="h-full rounded-full bg-ember-orange"
                                         style={{ width: `${kpiWidth}%` }}
                                     />
                                 </div>
@@ -310,7 +300,7 @@ export default function Dashboard({
                                 </div>
                                 <div className="h-3 overflow-hidden rounded-full bg-fog">
                                     <div
-                                        className="h-full rounded-full bg-[color:var(--chart-2)]"
+                                        className="h-full rounded-full bg-pulse-green"
                                         style={{
                                             width: `${Math.min(taskKpiPercent, 100)}%`,
                                         }}
@@ -422,7 +412,7 @@ export default function Dashboard({
                                 myTasks.map((task) => (
                                     <div
                                         key={task.id}
-                                        className="rounded-2xl bg-fog p-3 transition hover:bg-apricot-wash/45"
+                                        className="rounded-sm border border-border bg-fog p-3 transition hover:bg-white"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
@@ -451,7 +441,7 @@ export default function Dashboard({
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <AlertTriangle className="size-4 text-rust" />
+                            <AlertTriangle className="size-4 text-ember-orange" />
                             Overdue Tasks
                         </CardTitle>
                         <CardDescription>
@@ -468,7 +458,7 @@ export default function Dashboard({
                                 overdueTasks.map((task) => (
                                     <div
                                         key={task.id}
-                                        className="rounded-2xl bg-fog p-3 transition hover:bg-apricot-wash/45"
+                                        className="rounded-sm border border-border bg-fog p-3 transition hover:bg-white"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
@@ -479,7 +469,7 @@ export default function Dashboard({
                                                     {task.project ?? '-'}
                                                 </div>
                                             </div>
-                                            <CircleDot className="size-4 text-rust" />
+                                            <CircleDot className="size-4 text-ember-orange" />
                                         </div>
                                         <div className="mt-3 flex flex-wrap items-center gap-2">
                                             <StatusBadge status={task.status} />

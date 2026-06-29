@@ -39,6 +39,7 @@ import {
     store as storeTask,
     update as updateTask,
 } from '@/actions/App/Http/Controllers/TaskController';
+import { PageHeader } from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -229,10 +230,7 @@ function ProjectTableLabel({
                     : 'border-slate-200 bg-white'
             }`}
         >
-            <div
-                className="h-1.5"
-                style={{ backgroundColor: accentColor }}
-            />
+            <div className="h-1.5" style={{ backgroundColor: accentColor }} />
             <div
                 className={`border-b px-3 py-2.5 ${
                     projectBlocked
@@ -242,14 +240,14 @@ function ProjectTableLabel({
             >
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase text-emerald-700">
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 uppercase">
                             <Table2 className="size-3" />
                             {project.parent_id ? 'Sub Project' : 'Project'}
                             {projectBlocked && (
                                 <Lock className="size-3 text-red-500" />
                             )}
                         </div>
-                        <div className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
+                        <div className="mt-1 line-clamp-2 text-sm leading-snug font-semibold text-slate-800">
                             {project.title}
                         </div>
                     </div>
@@ -279,83 +277,81 @@ function ProjectTableLabel({
                         <div
                             key={task.id}
                             className={
-                                isTaskBlocked(task)
-                                    ? 'bg-red-50/90'
-                                    : undefined
+                                isTaskBlocked(task) ? 'bg-red-50/90' : undefined
                             }
                         >
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            className="nodrag nopan grid w-full grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-left text-xs transition hover:bg-emerald-50/70"
-                            style={{ paddingLeft: `${12 + depth * 18}px` }}
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                onSelectTask(task);
-                            }}
-                            onKeyDown={(event) => {
-                                if (
-                                    event.key === 'Enter' ||
-                                    event.key === ' '
-                                ) {
-                                    event.preventDefault();
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                className="nodrag nopan grid w-full grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-left text-xs transition hover:bg-emerald-50/70"
+                                style={{ paddingLeft: `${12 + depth * 18}px` }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
                                     onSelectTask(task);
-                                }
-                            }}
-                            onMouseDown={(event) => event.stopPropagation()}
-                        >
-                            <span className="min-w-0">
-                                <span className="block truncate font-medium text-slate-700">
-                                    {depth > 0 ? 'Sub task' : 'Task'} ·{' '}
-                                    {task.title}
-                                </span>
-                                <span className="mt-0.5 block truncate text-[11px] text-slate-400">
-                                    PIC {task.assignee?.name ?? '-'} · due{' '}
-                                    {formatDate(task.due_date)}
-                                </span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                                {task.requires_previous_task_done && (
-                                    <Lock
-                                        className={`size-3 ${
-                                            isTaskBlocked(task)
-                                                ? 'text-red-500'
-                                                : 'text-amber-500'
-                                        }`}
-                                    />
-                                )}
-                                <span
-                                    className="size-2.5 rounded-full"
-                                    style={{
-                                        backgroundColor:
-                                            task.status?.color ?? '#10b981',
-                                    }}
-                                />
-                                <span
-                                    role="button"
-                                    tabIndex={0}
-                                    className="ml-1 inline-flex size-6 items-center justify-center rounded border bg-white text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50"
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        onAddTask(task);
-                                    }}
-                                    onKeyDown={(event) => {
-                                        if (
-                                            event.key === 'Enter' ||
-                                            event.key === ' '
-                                        ) {
-                                            event.preventDefault();
-                                            onAddTask(task);
-                                        }
-                                    }}
-                                    onMouseDown={(event) =>
-                                        event.stopPropagation()
+                                }}
+                                onKeyDown={(event) => {
+                                    if (
+                                        event.key === 'Enter' ||
+                                        event.key === ' '
+                                    ) {
+                                        event.preventDefault();
+                                        onSelectTask(task);
                                     }
-                                >
-                                    <Plus className="size-3.5" />
+                                }}
+                                onMouseDown={(event) => event.stopPropagation()}
+                            >
+                                <span className="min-w-0">
+                                    <span className="block truncate font-medium text-slate-700">
+                                        {depth > 0 ? 'Sub task' : 'Task'} ·{' '}
+                                        {task.title}
+                                    </span>
+                                    <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                                        PIC {task.assignee?.name ?? '-'} · due{' '}
+                                        {formatDate(task.due_date)}
+                                    </span>
                                 </span>
-                            </span>
-                        </div>
+                                <span className="flex items-center gap-1">
+                                    {task.requires_previous_task_done && (
+                                        <Lock
+                                            className={`size-3 ${
+                                                isTaskBlocked(task)
+                                                    ? 'text-red-500'
+                                                    : 'text-amber-500'
+                                            }`}
+                                        />
+                                    )}
+                                    <span
+                                        className="size-2.5 rounded-full"
+                                        style={{
+                                            backgroundColor:
+                                                task.status?.color ?? '#10b981',
+                                        }}
+                                    />
+                                    <span
+                                        role="button"
+                                        tabIndex={0}
+                                        className="ml-1 inline-flex size-6 items-center justify-center rounded border bg-white text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            onAddTask(task);
+                                        }}
+                                        onKeyDown={(event) => {
+                                            if (
+                                                event.key === 'Enter' ||
+                                                event.key === ' '
+                                            ) {
+                                                event.preventDefault();
+                                                onAddTask(task);
+                                            }
+                                        }}
+                                        onMouseDown={(event) =>
+                                            event.stopPropagation()
+                                        }
+                                    >
+                                        <Plus className="size-3.5" />
+                                    </span>
+                                </span>
+                            </div>
                         </div>
                     ))
                 )}
@@ -561,10 +557,7 @@ function buildTableFlow(
             childY = appendProject(child, depth + 1, Math.max(40, childY));
         });
 
-        return Math.max(
-            yPosition + estimateHeight(project) + 90,
-            childY + 40,
-        );
+        return Math.max(yPosition + estimateHeight(project) + 90, childY + 40);
     };
 
     (projectsByParent.root ?? []).forEach((project) => {
@@ -621,9 +614,7 @@ function DetailPanel({
     return (
         <div className="space-y-4 text-sm">
             <div className="space-y-1">
-                <div className="font-semibold text-slate-800">
-                    {item.title}
-                </div>
+                <div className="font-semibold text-slate-800">{item.title}</div>
                 <div className="text-muted-foreground">
                     {isProject ? 'Project' : 'Task'} ·{' '}
                     {item.status?.name ?? '-'}
@@ -647,15 +638,17 @@ function DetailPanel({
                     <span>{isProject ? 'Owner' : 'PIC'}</span>
                     <span className="text-right font-medium">
                         {isProject
-                            ? (item as FlowProject).owner?.name ?? '-'
-                            : (item as FlowTask).assignee?.name ?? '-'}
+                            ? ((item as FlowProject).owner?.name ?? '-')
+                            : ((item as FlowTask).assignee?.name ?? '-')}
                     </span>
                 </div>
                 <div className="flex justify-between gap-3">
                     <span>Deadline</span>
                     <span className="font-medium">
                         {isProject
-                            ? formatDate((item as FlowProject).expected_deadline)
+                            ? formatDate(
+                                  (item as FlowProject).expected_deadline,
+                              )
                             : formatDate((item as FlowTask).due_date)}
                     </span>
                 </div>
@@ -673,17 +666,15 @@ function DetailPanel({
 
             {item.description && (
                 <div>
-                    <div className="mb-1 text-xs font-medium uppercase text-slate-400">
+                    <div className="mb-1 text-xs font-medium text-slate-400 uppercase">
                         Deskripsi
                     </div>
-                    <p className="text-sm text-slate-600">
-                        {item.description}
-                    </p>
+                    <p className="text-sm text-slate-600">{item.description}</p>
                 </div>
             )}
 
             <div>
-                <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase text-slate-400">
+                <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-400 uppercase">
                     <FileText className="size-3.5" />
                     Attachment
                 </div>
@@ -711,7 +702,7 @@ function DetailPanel({
             {isProject && (
                 <div className="grid gap-3">
                     <div>
-                        <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                        <div className="mb-2 text-xs font-medium text-slate-400 uppercase">
                             Subproject
                         </div>
                         {subprojects.length > 0 ? (
@@ -732,7 +723,7 @@ function DetailPanel({
                         )}
                     </div>
                     <div>
-                        <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                        <div className="mb-2 text-xs font-medium text-slate-400 uppercase">
                             Tasks
                         </div>
                         {projectTasks.length > 0 ? (
@@ -757,7 +748,7 @@ function DetailPanel({
 
             {!isProject && (
                 <div>
-                    <div className="mb-2 text-xs font-medium uppercase text-slate-400">
+                    <div className="mb-2 text-xs font-medium text-slate-400 uppercase">
                         Subtasks
                     </div>
                     {subtasks.length > 0 ? (
@@ -802,11 +793,7 @@ function DetailPanel({
                 )}
                 {((isProject && canDeleteProject) ||
                     (!isProject && canDeleteTask)) && (
-                    <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={onDelete}
-                    >
+                    <Button size="sm" variant="destructive" onClick={onDelete}>
                         <Trash2 />
                         Hapus
                     </Button>
@@ -860,9 +847,7 @@ function AddChildDialog({
                                 type="button"
                                 variant="outline"
                                 onClick={() =>
-                                    onAddSubProject(
-                                        source.item as FlowProject,
-                                    )
+                                    onAddSubProject(source.item as FlowProject)
                                 }
                             >
                                 <Plus />
@@ -1092,9 +1077,7 @@ function ProjectDialog({
                                     <Textarea
                                         id="description"
                                         name="description"
-                                        defaultValue={
-                                            values?.description ?? ''
-                                        }
+                                        defaultValue={values?.description ?? ''}
                                     />
                                     <InputError message={errors.description} />
                                 </div>
@@ -1389,7 +1372,9 @@ function TaskDialog({
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        defaultValue={values?.kpi_point ?? '0.00'}
+                                        defaultValue={
+                                            values?.kpi_point ?? '0.00'
+                                        }
                                         required
                                     />
                                     <InputError message={errors.kpi_point} />
@@ -1414,7 +1399,9 @@ function TaskDialog({
                                         id="due_date"
                                         name="due_date"
                                         type="date"
-                                        defaultValue={dateValue(values?.due_date)}
+                                        defaultValue={dateValue(
+                                            values?.due_date,
+                                        )}
                                     />
                                     <InputError message={errors.due_date} />
                                 </div>
@@ -1477,7 +1464,9 @@ function TaskDialog({
                                                     }))}
                                             />
                                             <InputError
-                                                message={errors.previous_task_id}
+                                                message={
+                                                    errors.previous_task_id
+                                                }
                                             />
                                         </div>
                                     </div>
@@ -1562,10 +1551,12 @@ export default function FlowActivities({
             ),
         [projects],
     );
-    const [tableNodes, setTableNodes, onTableNodesChange] =
-        useNodesState<Node>([]);
-    const [tableEdges, setTableEdges, onTableEdgesChange] =
-        useEdgesState<Edge>([]);
+    const [tableNodes, setTableNodes, onTableNodesChange] = useNodesState<Node>(
+        [],
+    );
+    const [tableEdges, setTableEdges, onTableEdgesChange] = useEdgesState<Edge>(
+        [],
+    );
     const timelineItems = useMemo(
         () =>
             projects
@@ -1596,7 +1587,8 @@ export default function FlowActivities({
     const rootProject = projects.find((project) => !project.parent_id);
     const selectedProject =
         selectedNode?.type === 'project' ? selectedNode.item : null;
-    const selectedTask = selectedNode?.type === 'task' ? selectedNode.item : null;
+    const selectedTask =
+        selectedNode?.type === 'task' ? selectedNode.item : null;
     const selectedTaskProject = selectedTask
         ? projects.find((project) => project.id === selectedTask.project_id)
         : null;
@@ -1645,12 +1637,13 @@ export default function FlowActivities({
     ): ProjectDraft => ({
         code: `${kind === 'sub_project' ? 'SUB' : 'PRJ'}-${String(allProjects.length + 1).padStart(3, '0')}`,
         title: kind === 'sub_project' ? 'Sub project baru' : 'Project baru',
-        parent_id: kind === 'sub_project' ? parentProject?.id ?? null : null,
+        parent_id: kind === 'sub_project' ? (parentProject?.id ?? null) : null,
         division_id:
             parentProject?.division_id ??
             rootProject?.division_id ??
             divisions[0]?.id,
-        owner_id: parentProject?.owner_id ?? rootProject?.owner_id ?? users[0]?.id,
+        owner_id:
+            parentProject?.owner_id ?? rootProject?.owner_id ?? users[0]?.id,
         status_id: statuses[0]?.id,
         priority: 'medium',
         requires_previous_project_done: false,
@@ -1689,7 +1682,10 @@ export default function FlowActivities({
 
     const openSubProjectFrom = (project: FlowProject) => {
         setAddSource(null);
-        openProjectDialog(undefined, projectDefaultsFor(project, 'sub_project'));
+        openProjectDialog(
+            undefined,
+            projectDefaultsFor(project, 'sub_project'),
+        );
     };
 
     const openTaskFromProject = (project: FlowProject) => {
@@ -1721,7 +1717,10 @@ export default function FlowActivities({
             return;
         }
 
-        if ((kind === 'project' || kind === 'sub_project') && canCreateProject) {
+        if (
+            (kind === 'project' || kind === 'sub_project') &&
+            canCreateProject
+        ) {
             const parentProject = selectedProject ?? rootProject;
             openProjectDialog(
                 undefined,
@@ -1730,7 +1729,8 @@ export default function FlowActivities({
         }
 
         if ((kind === 'task' || kind === 'sub_task') && canCreateTask) {
-            const project = selectedProject ?? selectedTaskProject ?? rootProject;
+            const project =
+                selectedProject ?? selectedTaskProject ?? rootProject;
 
             if (!project) {
                 return;
@@ -1778,68 +1778,66 @@ export default function FlowActivities({
     return (
         <>
             <Head title="Flow Aktivitas" />
-            <div className="flex min-h-screen flex-col overflow-hidden bg-slate-100">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">
-                            Flow Aktivitas
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Drag item dari panel kiri ke canvas untuk membuat
-                            project, sub-project, task, dan sub task.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="outline">
-                            <Link href={dashboard()}>
-                                Kembali ke Dashboard
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant={mode === 'flow2' ? 'default' : 'outline'}
-                        >
-                            <Link href={flowActivitiesIndex()}>
-                                Flow Aktivitas 2
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant={
-                                mode === 'timeline' ? 'default' : 'outline'
-                            }
-                        >
-                            <Link href={flowActivitiesTimeline()}>
-                                Timeline Aktivitas
-                            </Link>
-                        </Button>
-                        {canCreateProject && (
-                            <Button onClick={() => openProjectDialog()}>
-                                <Plus />
-                                Project
+            <div className="flex min-h-screen flex-col gap-4 overflow-hidden bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Activity map"
+                    title="Flow Aktivitas"
+                    description="Drag item dari panel kiri ke canvas untuk membuat project, sub-project, task, dan sub task."
+                    actions={
+                        <>
+                            <Button asChild variant="outline">
+                                <Link href={dashboard()}>
+                                    Kembali ke Dashboard
+                                </Link>
                             </Button>
-                        )}
-                        {canCreateTask && (
                             <Button
-                                variant="outline"
-                                onClick={() => openTaskDialog()}
+                                asChild
+                                variant={
+                                    mode === 'flow2' ? 'default' : 'outline'
+                                }
                             >
-                                <Plus />
-                                Task
+                                <Link href={flowActivitiesIndex()}>
+                                    Flow Aktivitas 2
+                                </Link>
                             </Button>
-                        )}
-                    </div>
-                </div>
+                            <Button
+                                asChild
+                                variant={
+                                    mode === 'timeline' ? 'default' : 'outline'
+                                }
+                            >
+                                <Link href={flowActivitiesTimeline()}>
+                                    Timeline Aktivitas
+                                </Link>
+                            </Button>
+                            {canCreateProject && (
+                                <Button onClick={() => openProjectDialog()}>
+                                    <Plus />
+                                    Project
+                                </Button>
+                            )}
+                            {canCreateTask && (
+                                <Button
+                                    variant="outline"
+                                    onClick={() => openTaskDialog()}
+                                >
+                                    <Plus />
+                                    Task
+                                </Button>
+                            )}
+                        </>
+                    }
+                />
 
                 {mode === 'flow' ? (
-                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-                        <div className="flex h-10 items-center justify-between border-b bg-slate-50 px-3 text-sm">
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-b border-border bg-white">
+                        <div className="flex h-10 items-center justify-between border-b border-border bg-smoke-50 px-3 text-sm">
                             <div className="flex items-center gap-3">
-                                <div className="font-semibold text-slate-700">
+                                <div className="font-medium text-ink">
                                     Activity Blocks
                                 </div>
-                                <div className="hidden h-5 w-px bg-slate-200 md:block" />
-                                <div className="hidden text-xs text-slate-500 md:block">
+                                <div className="hidden h-5 w-px bg-border md:block" />
+                                <div className="hidden text-xs text-graphite md:block">
                                     Pembentukan Kawasan Sentra Produksi Pangan
                                 </div>
                             </div>
@@ -2035,27 +2033,25 @@ export default function FlowActivities({
                         </div>
                     </div>
                 ) : mode === 'flow2' ? (
-                    <div className="min-h-0 flex-1 overflow-hidden rounded-lg border bg-white shadow-sm">
-                        <div className="flex h-10 items-center justify-between border-b bg-white px-3 text-sm">
+                    <div className="min-h-0 flex-1 overflow-hidden border-b border-border bg-white">
+                        <div className="flex h-10 items-center justify-between border-b border-border bg-white px-3 text-sm">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 font-semibold text-slate-700">
-                                    <Table2 className="size-4 text-emerald-600" />
+                                <div className="flex items-center gap-2 font-medium text-ink">
+                                    <Table2 className="size-4 text-pulse-green" />
                                     Flow Aktivitas 2
                                 </div>
-                                <div className="hidden h-5 w-px bg-slate-200 md:block" />
-                                <div className="hidden text-xs text-slate-500 md:block">
+                                <div className="hidden h-5 w-px bg-border md:block" />
+                                <div className="hidden text-xs text-graphite md:block">
                                     Project diagram dengan daftar task di dalam
                                     node.
                                 </div>
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-graphite">
                                 {projects.length} project
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 border-b bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                            <div className="font-medium text-slate-700">
-                                Legend
-                            </div>
+                        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-smoke-50 px-3 py-2 text-xs text-graphite">
+                            <div className="font-medium text-ink">Legend</div>
                             <div className="flex items-center gap-1.5">
                                 <span className="size-3 rounded-sm bg-emerald-500" />
                                 Running / normal
@@ -2180,8 +2176,7 @@ export default function FlowActivities({
                                                 className="h-8 rounded-r"
                                                 style={{
                                                     backgroundColor:
-                                                        project.status
-                                                            ?.color ??
+                                                        project.status?.color ??
                                                         '#10b981',
                                                 }}
                                             />
@@ -2291,7 +2286,7 @@ export default function FlowActivities({
                         </div>
                     </div>
                 ) : (
-                    <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
+                    <div className="min-h-0 flex-1 overflow-auto rounded-sm border">
                         <div className="divide-y">
                             {timelineItems.map((item) => (
                                 <div
@@ -2332,7 +2327,11 @@ export default function FlowActivities({
                 onAddSubTask={openSubTaskFrom}
             />
             <ProjectDialog
-                key={editingProject?.id ?? projectDefaults?.parent_id ?? 'create-project'}
+                key={
+                    editingProject?.id ??
+                    projectDefaults?.parent_id ??
+                    'create-project'
+                }
                 open={projectDialogOpen}
                 onOpenChange={closeProjectDialog}
                 project={editingProject}
@@ -2344,7 +2343,12 @@ export default function FlowActivities({
                 priorities={priorities}
             />
             <TaskDialog
-                key={editingTask?.id ?? taskDefaults?.parent_id ?? taskDefaults?.project_id ?? 'create-task'}
+                key={
+                    editingTask?.id ??
+                    taskDefaults?.parent_id ??
+                    taskDefaults?.project_id ??
+                    'create-task'
+                }
                 open={taskDialogOpen}
                 onOpenChange={closeTaskDialog}
                 task={editingTask}

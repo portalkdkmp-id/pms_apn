@@ -19,18 +19,35 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-heading:
-        Georgia, 'Times New Roman', 'Source Serif Pro', ui-serif, serif;
+        'Inter Variable', 'General Sans', ui-sans-serif, system-ui, sans-serif;
 
-    --color-ink: #17191c;
+    --color-paper-white: #ffffff;
+    --color-ink-black: #0a0a0a;
+    --color-carbon: #171717;
+    --color-smoke-50: #f5f5f5;
+    --color-smoke-100: #e5e5e5;
+    --color-smoke-200: #d4d4d4;
+    --color-smoke-400: #a3a3a3;
+    --color-smoke-500: #737373;
+    --color-smoke-600: #525252;
+    --color-smoke-700: #404040;
+    --color-ember-orange: #ea580c;
+    --color-pulse-green: #16a34a;
+    --color-arc-violet: #7c3aed;
+    --color-circuit-blue: #3b82f6;
+    --color-mint-wash: #dcfce7;
+    --color-slate-ink: #111827;
+
+    --color-ink: #0a0a0a;
     --color-pure-white: #ffffff;
-    --color-fog: #f7f7f8;
-    --color-ash: #4c4c4c;
-    --color-graphite: #777b86;
+    --color-fog: #f5f5f5;
+    --color-ash: #525252;
+    --color-graphite: #737373;
     --color-dove: #a3a6af;
-    --color-slate: #8b8c8d;
-    --color-rust: #5d2a1a;
-    --color-apricot-wash: #fbe1d1;
-    --color-sky-wash: #d3e3fc;
+    --color-slate: #404040;
+    --color-rust: #ea580c;
+    --color-apricot-wash: #fff7ed;
+    --color-sky-wash: #eff6ff;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -82,42 +99,42 @@
 
 :root {
     --background: #ffffff;
-    --foreground: #17191c;
+    --foreground: #0a0a0a;
     --card: #ffffff;
-    --card-foreground: #17191c;
+    --card-foreground: #0a0a0a;
     --popover: #ffffff;
-    --popover-foreground: #17191c;
-    --primary: #17191c;
+    --popover-foreground: #0a0a0a;
+    --primary: #000000;
     --primary-foreground: #ffffff;
-    --secondary: #f7f7f8;
-    --secondary-foreground: #17191c;
-    --muted: #f7f7f8;
-    --muted-foreground: #777b86;
-    --accent: #f7f7f8;
-    --accent-foreground: #17191c;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #0a0a0a;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --accent: #f5f5f5;
+    --accent-foreground: #0a0a0a;
     --destructive: #9f3227;
     --destructive-foreground: #ffffff;
-    --border: #e1e1e4;
-    --input: #d9dade;
-    --ring: #5d2a1a;
-    --chart-1: #5d2a1a;
-    --chart-2: #4a90e2;
-    --chart-3: #fbe1d1;
-    --chart-4: #d3e3fc;
-    --chart-5: #777b86;
-    --radius: 1.5rem;
-    --sidebar: #f7f7f8;
-    --sidebar-foreground: #17191c;
-    --sidebar-primary: #17191c;
+    --border: #e5e5e5;
+    --input: #d4d4d4;
+    --ring: #0a0a0a;
+    --chart-1: #ea580c;
+    --chart-2: #16a34a;
+    --chart-3: #7c3aed;
+    --chart-4: #3b82f6;
+    --chart-5: #737373;
+    --radius: 0.75rem;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0a0a0a;
+    --sidebar-primary: #000000;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #ffffff;
-    --sidebar-accent-foreground: #17191c;
-    --sidebar-border: #e6e6e8;
-    --sidebar-ring: #5d2a1a;
-    --shadow-subtle:
-        rgba(4, 23, 43, 0.05) 0px 0px 0px 1px,
-        rgba(0, 0, 0, 0.1) 0px 20px 25px -5px,
-        rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+    --sidebar-accent: #f5f5f5;
+    --sidebar-accent-foreground: #0a0a0a;
+    --sidebar-border: #e5e5e5;
+    --sidebar-ring: #0a0a0a;
+    --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+    --shadow-product:
+        rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+    --shadow-focus: rgba(0, 0, 0, 0.1) 0px 0px 0px 4px;
 }
 
 .dark {
@@ -162,7 +179,7 @@
 
     body {
         @apply bg-background text-foreground antialiased;
-        letter-spacing: -0.009em;
+        letter-spacing: 0;
     }
     html {
         @apply font-sans;
@@ -175,7 +192,7 @@
 
 @theme inline {
     --font-heading:
-        Georgia, 'Times New Roman', 'Source Serif Pro', ui-serif, serif;
+        'Inter Variable', 'General Sans', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Inter Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -211,8 +228,8 @@
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --radius-xl: calc(var(--radius) * 1);
+    --radius-2xl: calc(var(--radius) * 1.6);
+    --radius-3xl: calc(var(--radius) * 2);
+    --radius-4xl: calc(var(--radius) * 2.2);
 }

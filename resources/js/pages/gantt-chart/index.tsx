@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { GitBranch, Lock, Milestone, Rows3 } from 'lucide-react';
+import { PageHeader } from '@/components/app-page';
 import { Button } from '@/components/ui/button';
 import { index as flowActivitiesIndex } from '@/routes/flow-activities';
 import { index as ganttChartIndex } from '@/routes/gantt-chart';
@@ -143,7 +144,8 @@ function timelineBounds(rows: GanttRow[]): { start: Date; end: Date } {
 }
 
 function barStyle(row: GanttRow, start: Date, totalDays: number) {
-    const rowStart = parseDate(row.startDate) ?? parseDate(row.endDate) ?? start;
+    const rowStart =
+        parseDate(row.startDate) ?? parseDate(row.endDate) ?? start;
     const rowEnd = parseDate(row.endDate) ?? rowStart;
     const left = (diffDays(start, rowStart) / totalDays) * 100;
     const width = Math.max(
@@ -188,25 +190,23 @@ export default function GanttChartIndex({ projects }: Props) {
     return (
         <>
             <Head title="Gantt Chart" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Gantt Chart</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Timeline project, sub-project, task, dan sub task
-                            berdasarkan start date, end date, dan deadline.
-                        </p>
-                    </div>
-                    <Button asChild variant="outline">
-                        <Link href={flowActivitiesIndex()}>
-                            <GitBranch />
-                            Flow Aktivitas
-                        </Link>
-                    </Button>
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Timeline"
+                    title="Gantt Chart"
+                    description="Timeline project, sub-project, task, dan sub task berdasarkan start date, end date, dan deadline."
+                    actions={
+                        <Button asChild variant="outline">
+                            <Link href={flowActivitiesIndex()}>
+                                <GitBranch />
+                                Flow Aktivitas
+                            </Link>
+                        </Button>
+                    }
+                />
 
-                <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-white px-4 py-3 text-xs text-slate-600">
-                    <div className="font-medium text-slate-800">Legend</div>
+                <div className="flex flex-wrap items-center gap-3 border-b border-border bg-white px-4 py-3 text-xs text-graphite">
+                    <div className="font-medium text-ink">Legend</div>
                     <div className="flex items-center gap-1.5">
                         <span className="h-3 w-6 rounded-sm bg-emerald-500" />
                         Normal
@@ -225,11 +225,11 @@ export default function GanttChartIndex({ projects }: Props) {
                     </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-hidden rounded-lg border bg-white">
+                <div className="min-h-0 flex-1 overflow-hidden bg-white">
                     <div className="grid h-full grid-cols-[360px_1fr] overflow-auto">
                         <div className="sticky left-0 z-20 border-r bg-white">
-                            <div className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-slate-50 px-4 text-sm font-medium text-slate-700">
-                                <Rows3 className="size-4 text-emerald-600" />
+                            <div className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-smoke-50 px-4 text-sm font-medium text-ink">
+                                <Rows3 className="size-4 text-pulse-green" />
                                 Aktivitas
                             </div>
                             {rows.map((row) => (
@@ -264,7 +264,7 @@ export default function GanttChartIndex({ projects }: Props) {
                         </div>
 
                         <div className="min-w-[900px]">
-                            <div className="sticky top-0 z-10 grid h-12 grid-cols-7 border-b bg-slate-50">
+                            <div className="sticky top-0 z-10 grid h-12 grid-cols-7 border-b bg-smoke-50">
                                 {ticks.map((tick) => (
                                     <div
                                         key={tick.key}

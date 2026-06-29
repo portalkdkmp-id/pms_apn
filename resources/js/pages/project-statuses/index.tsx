@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/ProjectStatusController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -164,41 +170,52 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
         <>
             <Head title="Status" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Status</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola alur status project dan task.
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus />
-                            Tambah
-                        </Button>
-                    )}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="Workflow tags"
+                    title="Status"
+                    description="Kelola alur status project dan task agar progres terbaca konsisten di dashboard, flow, dan gantt."
+                    meta={
+                        <>
+                            <span>
+                                {projectStatuses.data.length} status tampil
+                            </span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Status baru
+                            </Button>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {projectStatuses.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada status"
+                            description="Tambahkan status untuk memetakan workflow project dan task."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Nama
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Slug
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Urutan
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Status
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -208,12 +225,12 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                                 {projectStatuses.data.map((projectStatus) => (
                                     <tr
                                         key={projectStatus.id}
-                                        className="border-t"
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
                                     >
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             <div className="flex items-center gap-2 font-medium">
                                                 <span
-                                                    className="size-3 rounded-full"
+                                                    className="size-2.5 rounded-full"
                                                     style={{
                                                         backgroundColor:
                                                             projectStatus.color,
@@ -222,19 +239,21 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                                                 {projectStatus.name}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4 font-mono text-xs text-graphite">
                                             {projectStatus.slug}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {projectStatus.sort_order}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            {projectStatus.is_active
-                                                ? 'Aktif'
-                                                : 'Nonaktif'}
+                                        <td className="px-5 py-4">
+                                            <span className="inline-flex rounded-full border border-border bg-smoke-50 px-2.5 py-1 text-xs font-medium">
+                                                {projectStatus.is_active
+                                                    ? 'Aktif'
+                                                    : 'Nonaktif'}
+                                            </span>
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -269,26 +288,10 @@ export default function ProjectStatusesIndex({ projectStatuses }: Props) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {projectStatuses.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={projectStatuses.links} />
             </div>
 
             {canCreate && (

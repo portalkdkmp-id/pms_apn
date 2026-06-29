@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -7,6 +7,12 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/ProjectController';
+import {
+    EmptyTableState,
+    PageHeader,
+    PaginationLinks,
+    TableCard,
+} from '@/components/app-page';
 import { FormSelect, formSelectValue } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -85,13 +91,14 @@ function ProjectFormDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-4xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>
                         {project ? 'Edit project' : 'Tambah project'}
                     </DialogTitle>
                     <DialogDescription>
-                        Kelola project, owner, status, jadwal, dan KPI.
+                        Isi data utama dulu, lalu lengkapi jadwal dan dependensi
+                        bila diperlukan.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -103,7 +110,16 @@ function ProjectFormDialog({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <div className="text-sm font-medium text-ink">
+                                        Informasi utama
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Data minimum agar project bisa mulai
+                                        dikerjakan.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="code">Kode</Label>
                                     <Input
@@ -217,6 +233,18 @@ function ProjectFormDialog({
                                     />
                                     <InputError message={errors.kpi_target} />
                                 </div>
+                            </div>
+
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4 sm:grid-cols-3">
+                                <div className="sm:col-span-3">
+                                    <div className="text-sm font-medium text-ink">
+                                        Jadwal
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Tanggal boleh dikosongkan jika belum
+                                        final.
+                                    </p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="start_date">
                                         Start date
@@ -243,7 +271,7 @@ function ProjectFormDialog({
                                     />
                                     <InputError message={errors.end_date} />
                                 </div>
-                                <div className="grid gap-2 sm:col-span-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="expected_deadline">
                                         Expected deadline
                                     </Label>
@@ -259,7 +287,19 @@ function ProjectFormDialog({
                                         message={errors.expected_deadline}
                                     />
                                 </div>
-                                <div className="grid gap-2 sm:col-span-2">
+                            </div>
+
+                            <div className="grid gap-4 rounded-sm border border-border bg-smoke-50 p-4">
+                                <div>
+                                    <div className="text-sm font-medium text-ink">
+                                        Catatan dan dokumen
+                                    </div>
+                                    <p className="text-xs text-graphite">
+                                        Tambahkan konteks hanya bila membantu
+                                        tim memahami pekerjaan.
+                                    </p>
+                                </div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="description">
                                         Deskripsi
                                     </Label>
@@ -272,7 +312,7 @@ function ProjectFormDialog({
                                     />
                                     <InputError message={errors.description} />
                                 </div>
-                                <div className="grid gap-3 rounded-md border bg-slate-50/70 p-3 sm:col-span-2">
+                                <div className="grid gap-3 rounded-sm border border-border bg-white p-3">
                                     <div className="flex items-start gap-3">
                                         <input
                                             type="hidden"
@@ -290,7 +330,7 @@ function ProjectFormDialog({
                                                     event.target.checked,
                                                 )
                                             }
-                                            className="mt-1 size-4 accent-emerald-600"
+                                            className="mt-1 size-4 accent-ember-orange"
                                         />
                                         <div className="grid flex-1 gap-2">
                                             <Label htmlFor="requires_previous_project_done">
@@ -321,7 +361,7 @@ function ProjectFormDialog({
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid gap-2 sm:col-span-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="attachments">
                                         Upload dokumen / file / image
                                     </Label>
@@ -381,44 +421,55 @@ export default function ProjectsIndex({
         <>
             <Head title="Projects" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold">Projects</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Kelola project lintas divisi dan progres KPI.
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus />
-                            Tambah
-                        </Button>
-                    )}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto bg-fog p-4 md:p-6">
+                <PageHeader
+                    eyebrow="PMS workflow"
+                    title="Projects"
+                    description="Mulai dari project, tentukan owner dan status, lalu pecah pekerjaan menjadi task yang bisa dipantau harian."
+                    meta={
+                        <>
+                            <span>{projects.data.length} project tampil</span>
+                            <span>{parentProjects.length} opsi parent</span>
+                            <span>{divisions.length} divisi</span>
+                        </>
+                    }
+                    actions={
+                        canCreate && (
+                            <Button onClick={() => setIsCreateOpen(true)}>
+                                <Plus />
+                                Project baru
+                            </Button>
+                        )
+                    }
+                />
 
-                <div className="overflow-hidden rounded-lg border">
-                    <div className="overflow-x-auto">
+                <TableCard>
+                    {projects.data.length === 0 ? (
+                        <EmptyTableState
+                            title="Belum ada project"
+                            description="Buat project pertama untuk mulai menyusun task dan KPI."
+                        />
+                    ) : (
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/60 text-left">
+                            <thead className="bg-fog text-left text-xs tracking-[0.12em] text-graphite uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Project
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Divisi
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Owner
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Status
                                     </th>
-                                    <th className="px-4 py-3 font-medium">
+                                    <th className="px-5 py-4 font-medium">
                                         Deadline
                                     </th>
                                     {(canUpdate || canDelete) && (
-                                        <th className="w-24 px-4 py-3 text-right font-medium">
+                                        <th className="w-24 px-5 py-4 text-right font-medium">
                                             Aksi
                                         </th>
                                     )}
@@ -426,31 +477,34 @@ export default function ProjectsIndex({
                             </thead>
                             <tbody>
                                 {projects.data.map((project) => (
-                                    <tr key={project.id} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <div className="font-medium">
+                                    <tr
+                                        key={project.id}
+                                        className="border-t border-border/70 transition hover:bg-fog/70"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <div className="font-medium text-ink">
                                                 {project.title}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-graphite">
                                                 {project.code} ·{' '}
                                                 {project.priority}
                                             </div>
-                                            <div className="text-xs text-muted-foreground">
+                                            <div className="text-xs text-graphite">
                                                 {project.parent
                                                     ? `Sub-project dari ${project.parent.code}`
                                                     : `${project.children_count ?? 0} sub-project`}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {project.division?.name ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {project.owner?.name ?? '-'}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
+                                        <td className="px-5 py-4">
+                                            <div className="inline-flex items-center gap-2 rounded-full bg-fog px-3 py-1">
                                                 <span
-                                                    className="size-3 rounded-full"
+                                                    className="size-2.5 rounded-full"
                                                     style={{
                                                         backgroundColor:
                                                             project.status
@@ -461,13 +515,13 @@ export default function ProjectsIndex({
                                                 {project.status?.name ?? '-'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-5 py-4">
                                             {dateValue(
                                                 project.expected_deadline,
                                             ) || '-'}
                                         </td>
                                         {(canUpdate || canDelete) && (
-                                            <td className="px-4 py-3">
+                                            <td className="px-5 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     {canUpdate && (
                                                         <Button
@@ -502,26 +556,10 @@ export default function ProjectsIndex({
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    )}
+                </TableCard>
 
-                <div className="flex flex-wrap gap-2">
-                    {projects.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            asChild
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                        >
-                            <Link
-                                href={link.url ?? '#'}
-                                preserveScroll
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        </Button>
-                    ))}
-                </div>
+                <PaginationLinks links={projects.links} />
             </div>
 
             {canCreate && (
